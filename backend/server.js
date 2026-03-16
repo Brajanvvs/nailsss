@@ -11,6 +11,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* FRONTEND */
+
 const frontendPath = path.join(__dirname, "frontend");
 
 app.use(express.static(frontendPath));
@@ -19,12 +21,16 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
+/* API */
+
 app.use("/services", servicesRoutes);
 app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
-const PORT = process.env.PORT || 3000;
+/* PUERTO PARA RAILWAY */
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Servidor corriendo en puerto", PORT);
+const PORT = process.env.PORT;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
