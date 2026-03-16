@@ -11,6 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* API */
+
+app.use("/services", servicesRoutes);
+app.use("/auth", authRoutes);
+app.use("/appointments", appointmentsRoutes);
+
 /* FRONTEND */
 
 const frontendPath = path.join(__dirname, "frontend");
@@ -21,16 +27,16 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-/* API */
+/* HEALTH CHECK (muy importante para Railway) */
 
-app.use("/services", servicesRoutes);
-app.use("/auth", authRoutes);
-app.use("/appointments", appointmentsRoutes);
+app.get("/health", (req, res) => {
+  res.send("OK");
+});
 
-/* PUERTO PARA RAILWAY */
+/* PUERTO */
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
