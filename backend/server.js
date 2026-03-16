@@ -11,9 +11,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* SERVIR FRONTEND */
+/* FRONTEND */
 
 app.use(express.static(path.join(__dirname, "../frontend")));
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
 
 /* API */
 
@@ -21,7 +25,7 @@ app.use("/services", servicesRoutes);
 app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
-/* PUERTO PARA RAILWAY */
+/* PORT */
 
 const PORT = process.env.PORT || 3000;
 
