@@ -13,7 +13,7 @@ app.use(express.json());
 
 /* FRONTEND */
 
-const frontendPath = path.join(__dirname, "..", "frontend");
+const frontendPath = path.join(__dirname, "../frontend");
 
 app.use(express.static(frontendPath));
 
@@ -27,10 +27,10 @@ app.use("/services", servicesRoutes);
 app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
-/* PUERTO PARA RAILWAY */
+/* PUERTO */
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
