@@ -1,19 +1,31 @@
 const API = "";
 
+/* =========================
+INICIO
+========================= */
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
   setupCalendar();
 });
 
-function selectService(service) {
+/* =========================
+SELECCIONAR SERVICIO
+========================= */
+function selectService(id, title) {
 
-  localStorage.setItem("service", JSON.stringify(service));
+  localStorage.setItem("service", JSON.stringify({
+    id: id,
+    title: title
+  }));
 
   document.getElementById("selectedServiceText").innerText =
-    "Servicio seleccionado: " + service.title;
+    "Servicio seleccionado: " + title;
 
 }
 
+/* =========================
+CARGAR SERVICIOS
+========================= */
 function loadServices(){
 
   fetch("/services")
@@ -26,26 +38,26 @@ function loadServices(){
     data.forEach(service=>{
 
       container.innerHTML+=`
+        <div>
+          <h3>${service.title}</h3>
+          <p>$${service.price}</p>
 
-      <div>
-
-        <h3>${service.title}</h3>
-        <p>$${service.price}</p>
-
-        <button onclick='selectService(${JSON.stringify(service)})'>
-          Seleccionar
-        </button>
-
-      </div>
-
+          <button onclick="selectService(${service.id}, '${service.title}')">
+            Seleccionar
+          </button>
+        </div>
       `;
 
     });
 
-  });
+  })
+  .catch(err => console.error("Error servicios:", err));
 
 }
 
+/* =========================
+CALENDARIO (AGENDAR)
+========================= */
 function setupCalendar() {
 
   const cells = document.querySelectorAll("#calendar td[data-day]");
@@ -71,13 +83,20 @@ function setupCalendar() {
       const day = cell.dataset.day;
       const time = cell.dataset.time;
 
+      console.log({
+        service_id: service.id,
+        day,
+        time,
+        user_id: user.id
+      });
+
       fetch("/appointments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          service_id: service.id,
+          service_id: Number(service.id),
           day,
           time,
           user_id: user.id
@@ -86,9 +105,18 @@ function setupCalendar() {
       .then(res => res.json())
       .then(data => {
 
+        if(data.error){
+          alert(data.error);
+          return;
+        }
+
         alert("Cita creada");
         cell.innerText = "Ocupado";
 
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error conectando al servidor");
       });
 
     });
