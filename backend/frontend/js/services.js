@@ -1,66 +1,99 @@
 const API = "";
 
 /* =========================
-INICIO
+CUANDO CARGA
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
   setupCalendar();
+  loadAppointments();
 });
 
 /* =========================
 SELECCIONAR SERVICIO
 ========================= */
-function selectService(id, title) {
+function selectService(service) {
 
-  localStorage.setItem("service", JSON.stringify({
-    id,
-    title
-  }));
+  localStorage.setItem("service", JSON.stringify(service));
 
-  document.getElementById("selectedServiceText").innerText =
-    "Servicio seleccionado: " + title;
+  const text = document.getElementById("selectedServiceText");
+  if (text) {
+    text.innerText = "Servicio seleccionado: " + service.title;
+  }
 
 }
 
 /* =========================
-CARGAR SERVICIOS (FIX BOTÓN)
+CARGAR SERVICIOS
 ========================= */
-function loadServices(){
+async function loadServices() {
 
-  fetch("/services")
-  .then(res=>res.json())
-  .then(data=>{
+  try {
+
+    const res = await fetch("/services");
+    const data = await res.json();
 
     const container = document.getElementById("services");
-    container.innerHTML="";
 
-    data.forEach(service=>{
+    if (!container) return;
 
-      const div = document.createElement("div");
+    container.innerHTML = "";
 
-      div.innerHTML = `
-        <h3>${service.title}</h3>
-        <p>$${service.price}</p>
-        <button class="select-btn">Seleccionar</button>
+    data.forEach(service => {
+
+      container.innerHTML += `
+        <div>
+          <h3>${service.title}</h3>
+          <p>$${service.price}</p>
+
+          <button onclick='selectService(${JSON.stringify(service)})'>
+            Seleccionar
+          </button>
+        </div>
       `;
-
-      // 🔥 IMPORTANTE (NO ROMPE HTML)
-      div.querySelector(".select-btn").addEventListener("click", () => {
-        selectService(service.id, service.title);
-      });
-
-      container.appendChild(div);
 
     });
 
-  })
-  .catch(err => console.error("Error servicios:", err));
+  } catch (err) {
+    console.error("Error cargando servicios:", err);
+  }
 
 }
 
 /* =========================
-CALENDARIO (AGENDAR)
+PINTAR CITAS
+========================= */
+async function loadAppointments() {
+
+  try {
+
+    const res = await fetch("/appointments");
+    const data = await res.json();
+
+    data.forEach(app => {
+
+      if (app.status !== "active") return;
+
+      const cell = document.querySelector(
+        `td[data-day="${app.day}"][data-time="${app.time}"]`
+      );
+
+      if (cell) {
+        cell.innerHTML = "❌";
+        cell.style.background = "#ffcccc";
+        cell.style.cursor = "not-allowed";
+      }
+
+    });
+
+  } catch (err) {
+    console.error("Error cargando citas:", err);
+  }
+
+}
+
+/* =========================
+CLICK CALENDARIO
 ========================= */
 function setupCalendar() {
 
@@ -68,7 +101,12 @@ function setupCalendar() {
 
   cells.forEach(cell => {
 
-    cell.addEventListener("click", () => {
+    cell.addEventListener("click", async () => {
+
+      if (cell.innerHTML === "❌") {
+        alert("Horario ocupado");
+        return;
+      }
 
       const service = JSON.parse(localStorage.getItem("service"));
       const user = JSON.parse(localStorage.getItem("user"));
@@ -87,34 +125,39 @@ function setupCalendar() {
       const day = cell.dataset.day;
       const time = cell.dataset.time;
 
-      fetch("/appointments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          service_id: Number(service.id),
-          day,
-          time,
-          user_id: user.id
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
+      try {
 
-        if(data.error){
-          alert(data.error);
+        const res = await fetch("/appointments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            service_id: service.id,
+            day,
+            time,
+            user_id: user.id
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.log(data);
+          alert(data.error || "Error creando cita");
           return;
         }
 
-        alert("Cita creada");
-        cell.innerText = "Ocupado";
+        alert("✅ Cita creada");
 
-      })
-      .catch(err => {
+        cell.innerHTML = "❌";
+        cell.style.background = "#ffcccc";
+        cell.style.cursor = "not-allowed";
+
+      } catch (err) {
         console.error(err);
         alert("Error conectando al servidor");
-      });
+      }
 
     });
 
