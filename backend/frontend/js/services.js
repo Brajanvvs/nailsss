@@ -1,69 +1,113 @@
-const router = require("express").Router();
-const pool = require("../db");
+const API = "";
 
 /* =========================
-OBTENER SERVICIOS
+INICIO
 ========================= */
-router.get("/", async (req, res) => {
-  try {
-    const services = await pool.query("SELECT * FROM services");
-    res.json(services.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error obteniendo servicios" });
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  loadServices();
+  setupCalendar();
 });
 
 /* =========================
-CREAR SERVICIO (SOLO ADMIN)
+SELECCIONAR SERVICIO
 ========================= */
-router.post("/", async (req, res) => {
+function selectService(service) {
 
-  const { title, price, image, role } = req.body;
+  localStorage.setItem("service", JSON.stringify(service));
 
-  // 🔒 validar admin
-  if (role !== "admin") {
-    return res.status(403).json({ error: "No autorizado" });
-  }
+  const text = document.getElementById("selectedServiceText");
+  text.innerText = "Servicio seleccionado: " + service.title;
 
-  try {
-
-    const newService = await pool.query(
-      "INSERT INTO services (title, price, image) VALUES ($1,$2,$3) RETURNING *",
-      [title, price, image]
-    );
-
-    res.json(newService.rows[0]);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error creando servicio" });
-  }
-
-});
+}
 
 /* =========================
-ELIMINAR SERVICIO (SOLO ADMIN)
+CARGAR SERVICIOS
 ========================= */
-router.delete("/:id", async (req, res) => {
+function loadServices(){
 
-  const { role } = req.body; // 👈 viene del frontend
+  fetch("/services")
+  .then(res=>res.json())
+  .then(data=>{
 
-  if (role !== "admin") {
-    return res.status(403).json({ error: "No autorizado" });
-  }
+    const container = document.getElementById("services");
+    container.innerHTML="";
 
-  try {
+    data.forEach(service=>{
 
-    await pool.query("DELETE FROM services WHERE id = $1", [req.params.id]);
+      container.innerHTML+=`
 
-    res.json({ message: "Servicio eliminado" });
+      <div>
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error eliminando servicio" });
-  }
+        <h3>${service.title}</h3>
+        <p>$${service.price}</p>
 
-});
+        <button onclick='selectService(${JSON.stringify(service)})'>
+          Seleccionar
+        </button>
+
+      </div>
+
+      `;
+
+    });
+
+  });
+
+}
+
+/* =========================
+CALENDARIO (AGENDAR)
+========================= */
+function setupCalendar() {
+
+  const cells = document.querySelectorAll("#calendar td[data-day]");
+
+  cells.forEach(cell => {
+
+    cell.addEventListener("click", () => {
+
+      const service = JSON.parse(localStorage.getItem("service"));
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (!user) {
+        alert("Debe iniciar sesión");
+        window.location.href = "login.html";
+        return;
+      }
+
+      if (!service) {
+        alert("Seleccione un servicio primero");
+        return;
+      }
+
+      const day = cell.dataset.day;
+      const time = cell.dataset.time;
+
+      fetch("/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          service_id: service.id,
+          day,
+          time,
+          user_id: user.id
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+
+        alert("Cita creada");
+
+        cell.innerText = "Ocupado";
+
+      });
+
+    });
+
+  });
+
+}
 
 module.exports = router;
