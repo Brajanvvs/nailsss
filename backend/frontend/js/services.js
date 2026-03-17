@@ -6,7 +6,7 @@ CUANDO CARGA LA PÁGINA
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
   setupCalendar();
-  loadAppointments(); // 🔥 pintar citas guardadas
+  loadAppointments();
 });
 
 /* =========================
@@ -32,7 +32,9 @@ async function loadServices() {
     const data = await res.json();
 
     const container = document.getElementById("services");
-    const user = JSON.parse(localStorage.getItem("user"));
+
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    const isAdmin = user && user.role === "admin";
 
     container.innerHTML = "";
 
@@ -48,12 +50,13 @@ async function loadServices() {
           </button>
 
           ${
-            user && user.role === "admin"
+            isAdmin
               ? `<button onclick="deleteService(${service.id})">
-                  Eliminar
+                   Eliminar
                  </button>`
               : ""
           }
+
         </div>
       `;
 
@@ -70,7 +73,7 @@ ELIMINAR SERVICIO (SOLO ADMIN)
 ========================= */
 async function deleteService(id) {
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   if (!user || user.role !== "admin") {
     alert("No autorizado");
@@ -145,7 +148,7 @@ function setupCalendar() {
 
     cell.addEventListener("click", async () => {
 
-      // 🔥 evitar duplicados
+      // evitar duplicado
       if (cell.innerHTML === "❌") {
         alert("Horario ocupado");
         return;
@@ -192,7 +195,6 @@ function setupCalendar() {
 
         alert("✅ Cita creada");
 
-        // 🔥 marcar celda ocupada
         cell.innerHTML = "❌";
         cell.style.background = "#ffcccc";
         cell.style.cursor = "not-allowed";
