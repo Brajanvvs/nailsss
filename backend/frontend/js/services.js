@@ -1,28 +1,19 @@
 const API = "";
 
-/* =========================
-INICIO
-========================= */
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
   setupCalendar();
 });
 
-/* =========================
-SELECCIONAR SERVICIO
-========================= */
 function selectService(service) {
 
   localStorage.setItem("service", JSON.stringify(service));
 
-  const text = document.getElementById("selectedServiceText");
-  text.innerText = "Servicio seleccionado: " + service.title;
+  document.getElementById("selectedServiceText").innerText =
+    "Servicio seleccionado: " + service.title;
 
 }
 
-/* =========================
-CARGAR SERVICIOS
-========================= */
 function loadServices(){
 
   fetch("/services")
@@ -55,9 +46,6 @@ function loadServices(){
 
 }
 
-/* =========================
-CALENDARIO (AGENDAR)
-========================= */
 function setupCalendar() {
 
   const cells = document.querySelectorAll("#calendar td[data-day]");
@@ -99,7 +87,6 @@ function setupCalendar() {
       .then(data => {
 
         alert("Cita creada");
-
         cell.innerText = "Ocupado";
 
       });
@@ -109,5 +96,3 @@ function setupCalendar() {
   });
 
 }
-
-module.exports = router;
