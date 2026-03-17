@@ -12,6 +12,11 @@ const appointmentsRoutes = require("./routes/appointments");
 const app = express();
 
 /* =========================
+   CONFIG
+========================= */
+app.set("trust proxy", 1);
+
+/* =========================
    LOG INICIAL
 ========================= */
 console.log("🚀 Iniciando servidor...");
@@ -25,6 +30,20 @@ app.use(cors());
 app.use(express.json());
 
 /* =========================
+   RUTA BASE (IMPORTANTE)
+========================= */
+app.get("/", (req, res) => {
+  res.status(200).send("Servidor activo 🚀");
+});
+
+/* =========================
+   HEALTH CHECK (Railway)
+========================= */
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+/* =========================
    API ROUTES
 ========================= */
 app.use("/services", servicesRoutes);
@@ -32,32 +51,13 @@ app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
 /* =========================
-   HEALTH CHECK
-========================= */
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
-});
-
-/* =========================
-   FRONTEND (SEGURO)
+   FRONTEND (SI EXISTE)
 ========================= */
 const frontendPath = path.join(__dirname, "frontend");
 
 if (fs.existsSync(frontendPath)) {
   console.log("✅ Frontend encontrado");
-
   app.use(express.static(frontendPath));
-
-  app.get("/", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
-
-} else {
-  console.log("⚠️ Frontend NO encontrado");
-
-  app.get("/", (req, res) => {
-    res.send("API funcionando en Railway 🚀");
-  });
 }
 
 /* =========================
@@ -79,10 +79,13 @@ app.use((err, req, res, next) => {
 });
 
 /* =========================
-   PUERTO (FIX FINAL)
+   PUERTO (Railway OK)
 ========================= */
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
-});
+// pequeño delay para asegurar readiness
+setTimeout(() => {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
+  });
+}, 500);
