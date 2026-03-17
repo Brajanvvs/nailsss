@@ -1,104 +1,52 @@
 const API = "";
 
 /* =========================
-LOGIN
+SELECCIONAR SERVICIO
 ========================= */
+function selectService(service) {
 
-const loginForm = document.getElementById("loginForm");
+  // guardar servicio
+  localStorage.setItem("service", JSON.stringify(service));
 
-if(loginForm){
-
-loginForm.addEventListener("submit", async (e)=>{
-
-e.preventDefault();
-
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
-
-try{
-
-const res = await fetch(API + "/auth/login",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-email,
-password
-})
-});
-
-const data = await res.json();
-
-if(!res.ok){
-alert(data.error || "Error login");
-return;
-}
-
-localStorage.setItem("user", JSON.stringify(data));
-
-window.location.href="index.html";
-
-}catch(err){
-
-console.log(err);
-alert("Error conectando al servidor");
+  // mostrar en pantalla
+  const text = document.getElementById("selectedServiceText");
+  text.innerText = "Servicio seleccionado: " + service.title;
 
 }
-
-});
-
-}
-
 
 /* =========================
-REGISTER
+CARGAR SERVICIOS
 ========================= */
+async function loadServices() {
 
-const registerForm = document.getElementById("registerForm");
+  try {
 
-if(registerForm){
+    const res = await fetch(API + "/services");
+    const data = await res.json();
 
-registerForm.addEventListener("submit", async (e)=>{
+    const container = document.getElementById("services");
 
-e.preventDefault();
+    container.innerHTML = "";
 
-const name = document.getElementById("name").value;
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+    data.forEach(service => {
 
-try{
+      container.innerHTML += `
+        <div>
+          <h3>${service.title}</h3>
+          <p>$${service.price}</p>
 
-const res = await fetch(API + "/auth/register",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-name,
-email,
-password
-})
-});
+          <button onclick='selectService(${JSON.stringify(service)})'>
+            Seleccionar
+          </button>
+        </div>
+      `;
 
-const data = await res.json();
+    });
 
-if(!res.ok){
-alert(data.error || "Error registrando");
-return;
-}
-
-alert("Cuenta creada");
-
-window.location.href="login.html";
-
-}catch(err){
-
-console.log(err);
-alert("Error conectando al servidor");
+  } catch (err) {
+    console.error("Error cargando servicios:", err);
+  }
 
 }
 
-});
-
-}
+loadServices();
