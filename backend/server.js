@@ -21,7 +21,7 @@ app.set("trust proxy", 1);
 ========================= */
 console.log("🚀 Iniciando servidor...");
 console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
-console.log("🔌 PORT:", process.env.PORT);
+console.log("🔌 PORT ENV:", process.env.PORT);
 
 /* =========================
    MIDDLEWARE
@@ -30,14 +30,14 @@ app.use(cors());
 app.use(express.json());
 
 /* =========================
-   RUTA BASE (IMPORTANTE)
+   RUTA BASE
 ========================= */
 app.get("/", (req, res) => {
   res.status(200).send("Servidor activo 🚀");
 });
 
 /* =========================
-   HEALTH CHECK (Railway)
+   HEALTH CHECK
 ========================= */
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
@@ -51,7 +51,7 @@ app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
 /* =========================
-   FRONTEND (SI EXISTE)
+   FRONTEND (OPCIONAL)
 ========================= */
 const frontendPath = path.join(__dirname, "frontend");
 
@@ -79,13 +79,10 @@ app.use((err, req, res, next) => {
 });
 
 /* =========================
-   PUERTO (Railway OK)
+   PUERTO (FORZADO PARA RAILWAY)
 ========================= */
-const PORT = process.env.PORT || 8080;
+const PORT = 3000; // 🔥 puerto fijo
 
-// pequeño delay para asegurar readiness
-setTimeout(() => {
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
-  });
-}, 500);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
+});
