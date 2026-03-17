@@ -1,9 +1,21 @@
 // services.js
 
+const API = "";
+
 /* =========================
-CONFIG
+SELECCIONAR SERVICIO
 ========================= */
-const API = ""; // 🔥 SIN localhost
+function selectService(service) {
+
+  // guardar en localStorage
+  localStorage.setItem("service", JSON.stringify(service));
+
+  alert("✅ Servicio seleccionado");
+
+  // redirigir si quieres
+  window.location.href = "appointments.html";
+
+}
 
 /* =========================
 CARGAR SERVICIOS
@@ -22,9 +34,13 @@ async function loadServices() {
     data.forEach(service => {
 
       container.innerHTML += `
-        <div>
+        <div class="service-card">
           <h3>${service.title}</h3>
           <p>$${service.price}</p>
+
+          <button onclick='selectService(${JSON.stringify(service)})'>
+            Seleccionar
+          </button>
         </div>
       `;
 
@@ -36,72 +52,4 @@ async function loadServices() {
 
 }
 
-/* =========================
-CREAR SERVICIO
-========================= */
-async function createService() {
-
-  try {
-
-    const res = await fetch(API + "/services", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        title: document.getElementById("title").value,
-        price: document.getElementById("price").value,
-        image: document.getElementById("image").value
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || "Error creando servicio");
-      return;
-    }
-
-    alert("✅ Servicio creado");
-
-    loadServices();
-
-  } catch (err) {
-    console.error("❌ Error creando servicio:", err);
-    alert("Error conectando al servidor");
-  }
-
-}
-
-/* =========================
-ELIMINAR SERVICIO
-========================= */
-async function deleteService(id) {
-
-  try {
-
-    const res = await fetch(API + `/services/${id}`, {
-      method: "DELETE"
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || "Error eliminando servicio");
-      return;
-    }
-
-    alert("🗑 Servicio eliminado");
-
-    loadServices();
-
-  } catch (err) {
-    console.error("❌ Error eliminando servicio:", err);
-  }
-
-}
-
-/* =========================
-INIT
-========================= */
 loadServices();
