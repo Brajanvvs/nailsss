@@ -1,55 +1,104 @@
-// services.js
-
 const API = "";
 
 /* =========================
-SELECCIONAR SERVICIO
+LOGIN
 ========================= */
-function selectService(service) {
 
-  // guardar en localStorage
-  localStorage.setItem("service", JSON.stringify(service));
+const loginForm = document.getElementById("loginForm");
 
-  alert("✅ Servicio seleccionado");
+if(loginForm){
 
-  // redirigir si quieres
-  window.location.href = "dashboard.html";
+loginForm.addEventListener("submit", async (e)=>{
+
+e.preventDefault();
+
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+
+try{
+
+const res = await fetch(API + "/auth/login",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+email,
+password
+})
+});
+
+const data = await res.json();
+
+if(!res.ok){
+alert(data.error || "Error login");
+return;
+}
+
+localStorage.setItem("user", JSON.stringify(data));
+
+window.location.href="index.html";
+
+}catch(err){
+
+console.log(err);
+alert("Error conectando al servidor");
 
 }
+
+});
+
+}
+
 
 /* =========================
-CARGAR SERVICIOS
+REGISTER
 ========================= */
-async function loadServices() {
 
-  try {
+const registerForm = document.getElementById("registerForm");
 
-    const res = await fetch(API + "/services");
-    const data = await res.json();
+if(registerForm){
 
-    const container = document.getElementById("services");
+registerForm.addEventListener("submit", async (e)=>{
 
-    container.innerHTML = "";
+e.preventDefault();
 
-    data.forEach(service => {
+const name = document.getElementById("name").value;
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
 
-      container.innerHTML += `
-        <div class="service-card">
-          <h3>${service.title}</h3>
-          <p>$${service.price}</p>
+try{
 
-          <button onclick='selectService(${JSON.stringify(service)})'>
-            Seleccionar
-          </button>
-        </div>
-      `;
+const res = await fetch(API + "/auth/register",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+name,
+email,
+password
+})
+});
 
-    });
+const data = await res.json();
 
-  } catch (err) {
-    console.error("❌ Error cargando servicios:", err);
-  }
+if(!res.ok){
+alert(data.error || "Error registrando");
+return;
+}
+
+alert("Cuenta creada");
+
+window.location.href="login.html";
+
+}catch(err){
+
+console.log(err);
+alert("Error conectando al servidor");
 
 }
 
-loadServices();
+});
+
+}
