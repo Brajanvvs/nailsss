@@ -1,6 +1,6 @@
 function createService(){
 
-fetch("http://localhost:3000/services",{
+fetch("/services",{
 
 method:"POST",
 
@@ -30,7 +30,7 @@ loadServices();
 
 function loadServices(){
 
-fetch("http://localhost:3000/services")
+fetch("/services")
 .then(res=>res.json())
 .then(data=>{
 
@@ -64,7 +64,7 @@ Eliminar
 
 function deleteService(id){
 
-fetch(`http://localhost:3000/services/${id}`,{
+fetch(`/services/${id}`,{
 
 method:"DELETE"
 

@@ -95,7 +95,7 @@ cell.classList.remove("ocupado");
 
 });
 
-fetch("http://localhost:3000/appointments")
+fetch("/appointments")
 .then(res => res.json())
 .then(data => {
 
@@ -167,7 +167,7 @@ window.location.href="login.html";
 return;
 }
 
-fetch("http://localhost:3000/appointments",{
+fetch("/appointments",{
 
 method:"POST",
 
@@ -205,7 +205,7 @@ const title = document.getElementById("title").value;
 const price = document.getElementById("price").value;
 const image = document.getElementById("image").value;
 
-fetch("http://localhost:3000/services",{
+fetch("/services",{
 
 method:"POST",
 
@@ -240,7 +240,7 @@ function deleteService(id){
 
 if(!confirm("¿Eliminar este servicio?")) return;
 
-fetch(`http://localhost:3000/services/${id}`,{
+fetch(`/services/${id}`,{
 
 method:"DELETE"
 

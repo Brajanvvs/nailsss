@@ -16,11 +16,11 @@ let url="";
 
 if(user.role==="admin"){
 
-url="http://localhost:3000/appointments";
+url="/appointments";
 
 }else{
 
-url=`http://localhost:3000/appointments/user/${user.id}`;
+url=`/appointments/user/${user.id}`;
 
 }
 
@@ -68,7 +68,7 @@ Cancelar
 
 function cancel(id){
 
-fetch(`http://localhost:3000/appointments/${id}`,{
+fetch(`/appointments/${id}`,{
 method:"DELETE"
 })
 .then(res=>res.json())
