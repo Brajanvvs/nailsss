@@ -1,52 +1,60 @@
-const API = "";
-
 /* =========================
-SELECCIONAR SERVICIO
+CLICK EN CALENDARIO
 ========================= */
-function selectService(service) {
+document.querySelectorAll("#calendar td[data-day]").forEach(cell => {
 
-  // guardar servicio
-  localStorage.setItem("service", JSON.stringify(service));
+  cell.addEventListener("click", async () => {
 
-  // mostrar en pantalla
-  const text = document.getElementById("selectedServiceText");
-  text.innerText = "Servicio seleccionado: " + service.title;
+    const service = JSON.parse(localStorage.getItem("service"));
+    const user = JSON.parse(localStorage.getItem("user"));
 
-}
+    if (!user) {
+      alert("Debe iniciar sesión");
+      window.location.href = "login.html";
+      return;
+    }
 
-/* =========================
-CARGAR SERVICIOS
-========================= */
-async function loadServices() {
+    if (!service) {
+      alert("Seleccione un servicio primero");
+      return;
+    }
 
-  try {
+    const day = cell.dataset.day;
+    const time = cell.dataset.time;
 
-    const res = await fetch(API + "/services");
-    const data = await res.json();
+    try {
 
-    const container = document.getElementById("services");
+      const res = await fetch("/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title: service.title,
+          day,
+          time,
+          user_id: user.id
+        })
+      });
 
-    container.innerHTML = "";
+      const data = await res.json();
 
-    data.forEach(service => {
+      if (!res.ok) {
+        alert(data.error || "Error creando cita");
+        return;
+      }
 
-      container.innerHTML += `
-        <div>
-          <h3>${service.title}</h3>
-          <p>$${service.price}</p>
+      alert("✅ Cita creada");
 
-          <button onclick='selectService(${JSON.stringify(service)})'>
-            Seleccionar
-          </button>
-        </div>
-      `;
+      // opcional: marcar celda ocupada
+      cell.innerText = "Ocupado";
+      cell.style.background = "#ccc";
 
-    });
+    } catch (err) {
+      console.error(err);
+      alert("Error conectando al servidor");
+    }
 
-  } catch (err) {
-    console.error("Error cargando servicios:", err);
-  }
+  });
 
-}
-
-loadServices();
+});
