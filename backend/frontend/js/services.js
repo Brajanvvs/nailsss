@@ -13,7 +13,7 @@ function selectService(service) {
   alert("✅ Servicio seleccionado");
 
   // redirigir si quieres
-  window.location.href = "appointments.html";
+  window.location.href = "dashboard.html";
 
 }
 
