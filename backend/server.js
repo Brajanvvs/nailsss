@@ -30,13 +30,6 @@ app.use(cors());
 app.use(express.json());
 
 /* =========================
-   RUTA BASE
-========================= */
-app.get("/", (req, res) => {
-  res.status(200).send("Servidor activo 🚀");
-});
-
-/* =========================
    HEALTH CHECK
 ========================= */
 app.get("/health", (req, res) => {
@@ -51,13 +44,27 @@ app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
 /* =========================
-   FRONTEND (OPCIONAL)
+   FRONTEND (IMPORTANTE)
 ========================= */
 const frontendPath = path.join(__dirname, "frontend");
 
 if (fs.existsSync(frontendPath)) {
   console.log("✅ Frontend encontrado");
+
+  // servir archivos estáticos
   app.use(express.static(frontendPath));
+
+  // cuando entren a "/"
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+  });
+
+} else {
+  console.log("⚠️ Frontend NO encontrado");
+
+  app.get("/", (req, res) => {
+    res.send("API funcionando 🚀");
+  });
 }
 
 /* =========================
@@ -79,9 +86,9 @@ app.use((err, req, res, next) => {
 });
 
 /* =========================
-   PUERTO (FORZADO PARA RAILWAY)
+   PUERTO (RAILWAY OK)
 ========================= */
-const PORT = 3000; // 🔥 puerto fijo
+const PORT = 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
