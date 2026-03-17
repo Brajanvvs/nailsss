@@ -37,7 +37,13 @@ router.post("/", async (req, res) => {
 
   const { service_id, day, time, user_id } = req.body;
 
-  if (!service_id || !day || !time || !user_id) {
+  // 🔥 FIX AQUÍ
+  if (
+    service_id == null ||
+    day == null ||
+    time == null ||
+    user_id == null
+  ) {
     return res.status(400).json({ error: "Datos incompletos" });
   }
 

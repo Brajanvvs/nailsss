@@ -14,8 +14,8 @@ SELECCIONAR SERVICIO
 function selectService(id, title) {
 
   localStorage.setItem("service", JSON.stringify({
-    id: id,
-    title: title
+    id,
+    title
   }));
 
   document.getElementById("selectedServiceText").innerText =
@@ -24,7 +24,7 @@ function selectService(id, title) {
 }
 
 /* =========================
-CARGAR SERVICIOS
+CARGAR SERVICIOS (FIX BOTÓN)
 ========================= */
 function loadServices(){
 
@@ -37,16 +37,20 @@ function loadServices(){
 
     data.forEach(service=>{
 
-      container.innerHTML+=`
-        <div>
-          <h3>${service.title}</h3>
-          <p>$${service.price}</p>
+      const div = document.createElement("div");
 
-          <button onclick="selectService(${service.id}, '${service.title}')">
-            Seleccionar
-          </button>
-        </div>
+      div.innerHTML = `
+        <h3>${service.title}</h3>
+        <p>$${service.price}</p>
+        <button class="select-btn">Seleccionar</button>
       `;
+
+      // 🔥 IMPORTANTE (NO ROMPE HTML)
+      div.querySelector(".select-btn").addEventListener("click", () => {
+        selectService(service.id, service.title);
+      });
+
+      container.appendChild(div);
 
     });
 
@@ -82,13 +86,6 @@ function setupCalendar() {
 
       const day = cell.dataset.day;
       const time = cell.dataset.time;
-
-      console.log({
-        service_id: service.id,
-        day,
-        time,
-        user_id: user.id
-      });
 
       fetch("/appointments", {
         method: "POST",
