@@ -91,11 +91,11 @@ function setupCalendar() {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            title: service.title,
+            service_id: service.id, // ✅ CLAVE
             day,
             time,
             user_id: user.id
-          })
+            })
         });
 
         const data = await res.json();
