@@ -1,87 +1,79 @@
-const container = document.getElementById("appointments");
+const router = require("express").Router();
+const pool = require("../db");
 
-if (container) {
+/* =========================
+OBTENER TODAS LAS CITAS
+========================= */
+router.get("/", async (req, res) => {
+  try {
+    const appointments = await pool.query("SELECT * FROM appointments");
+    res.json(appointments.rows);
+  } catch (err) {
+    console.error("ERROR GET APPOINTMENTS:", err);
+    res.status(500).json({ error: "Error obteniendo citas" });
+  }
+});
 
-  const user = JSON.parse(localStorage.getItem("user"));
+/* =========================
+OBTENER CITAS POR USUARIO
+========================= */
+router.get("/user/:id", async (req, res) => {
+  try {
+    const appointments = await pool.query(
+      "SELECT * FROM appointments WHERE user_id = $1",
+      [req.params.id]
+    );
+    res.json(appointments.rows);
+  } catch (err) {
+    console.error("ERROR GET USER APPOINTMENTS:", err);
+    res.status(500).json({ error: "Error obteniendo citas del usuario" });
+  }
+});
 
-  // 🔐 validar sesión
-  if (!user) {
-    alert("Debe iniciar sesión");
-    window.location.href = "login.html";
+/* =========================
+CREAR CITA
+========================= */
+router.post("/", async (req, res) => {
+
+  const { service_id, day, time, user_id } = req.body;
+
+  if (!service_id || !day || !time || !user_id) {
+    return res.status(400).json({ error: "Datos incompletos" });
   }
 
-  let url = "";
+  try {
 
-  // 👑 admin ve todo
-  if (user.role === "admin") {
-    url = "/appointments";
-  } else {
-    url = `/appointments/user/${user.id}`;
+    const newAppointment = await pool.query(
+      "INSERT INTO appointments (service_id, day, time, user_id, status) VALUES ($1,$2,$3,$4,'active') RETURNING *",
+      [service_id, day, time, user_id]
+    );
+
+    res.json(newAppointment.rows[0]);
+
+  } catch (err) {
+    console.error("ERROR CREANDO CITA:", err);
+    res.status(500).json({ error: "Error creando cita" });
   }
 
-  // 📥 cargar citas
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-
-      container.innerHTML = "";
-
-      if (data.length === 0) {
-        container.innerHTML = "<p>No tienes citas</p>";
-        return;
-      }
-
-      data.forEach(app => {
-
-        container.innerHTML += `
-          <div class="appointment">
-            <h3>${app.title || "Servicio"}</h3>
-            <p>${app.day} - ${app.time}</p>
-            <p>Usuario: ${app.name || "N/A"}</p>
-
-            ${
-              app.status === "active"
-                ? `<button onclick="cancel(${app.id})">
-                    Cancelar
-                   </button>`
-                : `<p style="color:red;">Cancelada</p>`
-            }
-          </div>
-        `;
-
-      });
-
-    })
-    .catch(err => {
-      console.error("Error cargando citas:", err);
-      container.innerHTML = "<p>Error cargando citas</p>";
-    });
-
-}
-
+});
 
 /* =========================
 CANCELAR CITA
 ========================= */
-function cancel(id) {
+router.delete("/:id", async (req, res) => {
+  try {
 
-  if (!confirm("¿Seguro que desea cancelar la cita?")) return;
+    await pool.query(
+      "UPDATE appointments SET status = 'cancelled' WHERE id = $1",
+      [req.params.id]
+    );
 
-  fetch(`/appointments/${id}`, {
-    method: "DELETE"
-  })
-    .then(res => res.json())
-    .then(data => {
+    res.json({ message: "Cita cancelada" });
 
-      alert("✅ Cita cancelada");
+  } catch (err) {
+    console.error("ERROR CANCELANDO CITA:", err);
+    res.status(500).json({ error: "Error cancelando cita" });
+  }
+});
 
-      // 🔥 recargar para actualizar calendario
-      window.location.href = "index.html";
-
-    })
-    .catch(err => {
-      console.error("Error cancelando cita:", err);
-      alert("Error cancelando cita");
-    });
-
-}
+module.exports = router;
