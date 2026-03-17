@@ -44,8 +44,6 @@ Eliminar
 
 }
 
-/* 🔥 FIX AQUÍ (sin romper HTML) */
-
 const div = document.createElement("div");
 div.className = "service";
 
@@ -57,10 +55,16 @@ div.innerHTML = `
 const btn = document.createElement("button");
 btn.innerText = "Seleccionar servicio";
 
-/* 👇 NO MÁS onclick con strings */
-btn.onclick = function(){
-  selectService(service.id, service.title);
-};
+/* 🔥 AQUÍ ESTABA EL ERROR → ahora fijo */
+btn.addEventListener("click", function(){
+  selectedService = service.id;
+
+  const label = document.getElementById("selectedServiceText");
+
+  if(label){
+    label.innerText = "Servicio seleccionado: " + service.title;
+  }
+});
 
 div.appendChild(btn);
 
@@ -73,23 +77,6 @@ servicesContainer.appendChild(div);
 });
 
 });
-
-
-/* =========================
-SELECCIONAR SERVICIO
-========================= */
-
-window.selectService = function(serviceId,title){
-
-selectedService = serviceId;
-
-const label = document.getElementById("selectedServiceText");
-
-if(label){
-label.innerText = "Servicio seleccionado: " + title;
-}
-
-};
 
 
 /* =========================
@@ -148,7 +135,8 @@ alert("Horario ocupado");
 return;
 }
 
-if(!selectedService){
+/* 🔥 ESTE ES EL FIX REAL */
+if(selectedService === null){
 alert("Seleccione primero un servicio");
 return;
 }
