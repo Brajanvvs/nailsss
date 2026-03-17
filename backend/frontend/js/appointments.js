@@ -1,83 +1,87 @@
 const container = document.getElementById("appointments");
 
-if(container){
+if (container) {
 
-const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
 
-if(!user){
+  // 🔐 validar sesión
+  if (!user) {
+    alert("Debe iniciar sesión");
+    window.location.href = "login.html";
+  }
 
-alert("Debe iniciar sesión");
+  let url = "";
 
-window.location.href="login.html";
+  // 👑 admin ve todo
+  if (user.role === "admin") {
+    url = "/appointments";
+  } else {
+    url = `/appointments/user/${user.id}`;
+  }
 
-}
+  // 📥 cargar citas
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
 
-let url="";
+      container.innerHTML = "";
 
-if(user.role==="admin"){
+      if (data.length === 0) {
+        container.innerHTML = "<p>No tienes citas</p>";
+        return;
+      }
 
-url="/appointments";
+      data.forEach(app => {
 
-}else{
+        container.innerHTML += `
+          <div class="appointment">
+            <h3>${app.title || "Servicio"}</h3>
+            <p>${app.day} - ${app.time}</p>
+            <p>Usuario: ${app.name || "N/A"}</p>
 
-url=`/appointments/user/${user.id}`;
+            ${
+              app.status === "active"
+                ? `<button onclick="cancel(${app.id})">
+                    Cancelar
+                   </button>`
+                : `<p style="color:red;">Cancelada</p>`
+            }
+          </div>
+        `;
 
-}
+      });
 
-fetch(url)
-.then(res=>res.json())
-.then(data=>{
-
-container.innerHTML="";
-
-if(data.length===0){
-
-container.innerHTML="<p>No tienes citas</p>";
-
-return;
-
-}
-
-data.forEach(app=>{
-
-container.innerHTML+=`
-
-<div class="appointment">
-
-<h3>${app.title}</h3>
-
-<p>${app.day} - ${app.time}</p>
-
-<p>Usuario: ${app.name}</p>
-
-${app.status==="active" ? `
-<button onclick="cancel(${app.id})">
-Cancelar
-</button>` : `<p style="color:red;">Cancelada</p>`}
-
-</div>
-
-`;
-
-});
-
-});
+    })
+    .catch(err => {
+      console.error("Error cargando citas:", err);
+      container.innerHTML = "<p>Error cargando citas</p>";
+    });
 
 }
 
 
-function cancel(id){
+/* =========================
+CANCELAR CITA
+========================= */
+function cancel(id) {
 
-fetch(`/appointments/${id}`,{
-method:"DELETE"
-})
-.then(res=>res.json())
-.then(data=>{
+  if (!confirm("¿Seguro que desea cancelar la cita?")) return;
 
-alert("Cita cancelada");
+  fetch(`/appointments/${id}`, {
+    method: "DELETE"
+  })
+    .then(res => res.json())
+    .then(data => {
 
-location.reload();
+      alert("✅ Cita cancelada");
 
-});
+      // 🔥 recargar para actualizar calendario
+      window.location.href = "index.html";
+
+    })
+    .catch(err => {
+      console.error("Error cancelando cita:", err);
+      alert("Error cancelando cita");
+    });
 
 }

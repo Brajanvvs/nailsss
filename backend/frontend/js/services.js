@@ -6,6 +6,7 @@ CUANDO CARGA LA PÁGINA
 document.addEventListener("DOMContentLoaded", () => {
   loadServices();
   setupCalendar();
+  loadAppointments(); // 🔥 pintar citas guardadas
 });
 
 /* =========================
@@ -56,7 +57,39 @@ async function loadServices() {
 }
 
 /* =========================
-CALENDARIO
+PINTAR CITAS GUARDADAS
+========================= */
+async function loadAppointments() {
+
+  try {
+
+    const res = await fetch("/appointments");
+    const data = await res.json();
+
+    data.forEach(app => {
+
+      if (app.status !== "active") return;
+
+      const cell = document.querySelector(
+        `td[data-day="${app.day}"][data-time="${app.time}"]`
+      );
+
+      if (cell) {
+        cell.innerHTML = "❌";
+        cell.style.background = "#ffcccc";
+        cell.style.cursor = "not-allowed";
+      }
+
+    });
+
+  } catch (err) {
+    console.error("Error cargando citas:", err);
+  }
+
+}
+
+/* =========================
+CALENDARIO (CLICK)
 ========================= */
 function setupCalendar() {
 
@@ -65,6 +98,12 @@ function setupCalendar() {
   cells.forEach(cell => {
 
     cell.addEventListener("click", async () => {
+
+      // 🔥 evitar duplicados
+      if (cell.innerHTML === "❌") {
+        alert("Horario ocupado");
+        return;
+      }
 
       const service = JSON.parse(localStorage.getItem("service"));
       const user = JSON.parse(localStorage.getItem("user"));
@@ -91,11 +130,11 @@ function setupCalendar() {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            service_id: service.id, // ✅ CLAVE
+            service_id: service.id,
             day,
             time,
             user_id: user.id
-            })
+          })
         });
 
         const data = await res.json();
@@ -107,8 +146,10 @@ function setupCalendar() {
 
         alert("✅ Cita creada");
 
-        cell.innerText = "Ocupado";
-        cell.style.background = "#ccc";
+        // 🔥 marcar celda ocupada
+        cell.innerHTML = "❌";
+        cell.style.background = "#ffcccc";
+        cell.style.cursor = "not-allowed";
 
       } catch (err) {
         console.error(err);
