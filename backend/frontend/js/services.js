@@ -21,7 +21,7 @@ adminPanel.style.display = "block";
 
 
 /* =========================
-CARGAR SERVICIOS
+CARGAR SERVICIOS (FIX BOTÓN)
 ========================= */
 
 fetch("/services")
@@ -32,33 +32,43 @@ servicesContainer.innerHTML = "";
 
 data.forEach(service => {
 
-let deleteButton = "";
+const div = document.createElement("div");
+div.className = "service";
 
+div.innerHTML = `
+<h3>${service.title}</h3>
+<p>$${service.price}</p>
+`;
+
+
+// 🔥 BOTÓN SEGURO (NO PARPADEA)
+const btn = document.createElement("button");
+btn.textContent = "Seleccionar servicio";
+
+btn.addEventListener("click", () => {
+selectService(service.id, service.title);
+});
+
+div.appendChild(btn);
+
+
+// 🔥 BOTÓN ADMIN
 if(user && user.role === "admin"){
 
-deleteButton = `
-<button onclick="deleteService(${service.id})" style="background:#ff4d6d;margin-top:8px;">
-Eliminar
-</button>
-`;
+const delBtn = document.createElement("button");
+delBtn.textContent = "Eliminar";
+delBtn.style.background = "#ff4d6d";
+delBtn.style.marginTop = "8px";
+
+delBtn.addEventListener("click", () => {
+deleteService(service.id);
+});
+
+div.appendChild(delBtn);
 
 }
 
-servicesContainer.innerHTML += `
-<div class="service">
-
-<h3>${service.title}</h3>
-
-<p>$${service.price}</p>
-
-<button onclick="selectService(${service.id}, '${service.title}')">
-Seleccionar servicio
-</button>
-
-${deleteButton}
-
-</div>
-`;
+servicesContainer.appendChild(div);
 
 });
 
