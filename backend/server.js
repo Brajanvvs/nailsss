@@ -32,7 +32,7 @@ app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
 /* =========================
-   HEALTH CHECK (Railway)
+   HEALTH CHECK
 ========================= */
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
@@ -56,35 +56,37 @@ if (fs.existsSync(frontendPath)) {
   console.log("⚠️ Frontend NO encontrado");
 
   app.get("/", (req, res) => {
-    res.send("API Nail funcionando en Railway 🚀");
+    res.send("API funcionando en Railway 🚀");
   });
 }
 
 /* =========================
-   RUTA NO ENCONTRADA
+   404
 ========================= */
 app.use((req, res) => {
-  res.status(404).json({
-    message: "Ruta no encontrada"
-  });
+  res.status(404).json({ message: "Ruta no encontrada" });
 });
 
 /* =========================
-   MANEJO DE ERRORES
+   ERRORES
 ========================= */
 app.use((err, req, res, next) => {
   console.error("❌ Error global:", err);
-
   res.status(500).json({
-    message: "Error interno del servidor",
+    message: "Error interno",
     error: err.message
   });
 });
 
 /* =========================
-   PUERTO (Railway READY)
+   PUERTO (CRÍTICO)
 ========================= */
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
+
+if (!PORT) {
+  console.error("❌ ERROR: Railway no asignó PORT");
+  process.exit(1);
+}
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
