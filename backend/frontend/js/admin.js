@@ -1,83 +1,113 @@
 function createService(){
 
-fetch("/services",{
+  const user = JSON.parse(localStorage.getItem("user"));
 
-method:"POST",
+  if(!user || user.role !== "admin"){
+    alert("No autorizado");
+    return;
+  }
 
-headers:{
-"Content-Type":"application/json"
-},
+  fetch("/services",{
 
-body:JSON.stringify({
+    method:"POST",
 
-title:document.getElementById("title").value,
-price:document.getElementById("price").value,
-image:document.getElementById("image").value
+    headers:{
+      "Content-Type":"application/json"
+    },
 
-})
+    body:JSON.stringify({
 
-})
-.then(res=>res.json())
-.then(data=>{
+      title:document.getElementById("title").value,
+      price:document.getElementById("price").value,
+      image:document.getElementById("image").value,
+      role: user.role // 🔥 CLAVE
 
-alert("Servicio creado");
+    })
 
-loadServices();
+  })
+  .then(res=>res.json())
+  .then(data=>{
 
-});
+    alert("Servicio creado");
+
+    loadServices();
+
+  });
 
 }
+
 
 function loadServices(){
 
-fetch("/services")
-.then(res=>res.json())
-.then(data=>{
+  const user = JSON.parse(localStorage.getItem("user"));
 
-const container = document.getElementById("services");
+  fetch("/services")
+  .then(res=>res.json())
+  .then(data=>{
 
-container.innerHTML="";
+    const container = document.getElementById("services");
 
-data.forEach(service=>{
+    container.innerHTML="";
 
-container.innerHTML+=`
+    data.forEach(service=>{
 
-<div>
+      container.innerHTML+=`
 
-<h3>${service.title}</h3>
+      <div>
 
-<p>$${service.price}</p>
+        <h3>${service.title}</h3>
 
-<button onclick="deleteService(${service.id})">
-Eliminar
-</button>
+        <p>$${service.price}</p>
 
-</div>
+        ${
+          user && user.role === "admin"
+          ? `<button onclick="deleteService(${service.id})">Eliminar</button>`
+          : ""
+        }
 
-`;
+      </div>
 
-});
+      `;
 
-});
+    });
+
+  });
 
 }
+
 
 function deleteService(id){
 
-fetch(`/services/${id}`,{
+  const user = JSON.parse(localStorage.getItem("user"));
 
-method:"DELETE"
+  if(!user || user.role !== "admin"){
+    alert("No autorizado");
+    return;
+  }
 
-})
-.then(res=>res.json())
-.then(data=>{
+  fetch(`/services/${id}`,{
 
-alert("Servicio eliminado");
+    method:"DELETE",
 
-loadServices();
+    headers:{
+      "Content-Type":"application/json"
+    },
 
-});
+    body:JSON.stringify({
+      role: user.role // 🔥 CLAVE
+    })
+
+  })
+  .then(res=>res.json())
+  .then(data=>{
+
+    alert("Servicio eliminado");
+
+    loadServices();
+
+  });
 
 }
+
 
 loadServices();
