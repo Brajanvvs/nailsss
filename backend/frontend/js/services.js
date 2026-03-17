@@ -44,6 +44,8 @@ Eliminar
 
 }
 
+/* 🔥 FIX AQUÍ (sin romper HTML) */
+
 const div = document.createElement("div");
 div.className = "service";
 
@@ -55,7 +57,7 @@ div.innerHTML = `
 const btn = document.createElement("button");
 btn.innerText = "Seleccionar servicio";
 
-/* 🔥 FIX: guardar bien el servicio */
+/* 👇 NO MÁS onclick con strings */
 btn.onclick = function(){
   selectService(service.id, service.title);
 };
@@ -80,12 +82,6 @@ SELECCIONAR SERVICIO
 window.selectService = function(serviceId,title){
 
 selectedService = serviceId;
-
-/* 🔥 guardar en localStorage */
-localStorage.setItem("service", JSON.stringify({
-  id: serviceId,
-  title: title
-}));
 
 const label = document.getElementById("selectedServiceText");
 
@@ -152,10 +148,7 @@ alert("Horario ocupado");
 return;
 }
 
-/* 🔥 obtener servicio desde storage */
-const service = JSON.parse(localStorage.getItem("service"));
-
-if(!service){
+if(!selectedService){
 alert("Seleccione primero un servicio");
 return;
 }
@@ -177,16 +170,10 @@ CREAR CITA
 function createAppointment(day,time){
 
 const user = JSON.parse(localStorage.getItem("user"));
-const service = JSON.parse(localStorage.getItem("service"));
 
 if(!user){
 alert("Debe iniciar sesión");
 window.location.href="login.html";
-return;
-}
-
-if(!service){
-alert("Seleccione un servicio primero");
 return;
 }
 
@@ -200,7 +187,7 @@ headers:{
 
 body:JSON.stringify({
 user_id:user.id,
-service_id:service.id,
+service_id:selectedService,
 day:day,
 time:time
 })
