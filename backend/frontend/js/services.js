@@ -34,7 +34,6 @@ async function loadServices() {
     const data = await res.json();
 
     const container = document.getElementById("services");
-
     if (!container) return;
 
     container.innerHTML = "";
@@ -79,9 +78,8 @@ async function loadAppointments() {
       );
 
       if (cell) {
-        cell.innerHTML = "❌";
-        cell.style.background = "#ffcccc";
-        cell.style.cursor = "not-allowed";
+        cell.innerHTML = "Ocupado";
+        cell.style.background = "#ccc";
       }
 
     });
@@ -103,7 +101,7 @@ function setupCalendar() {
 
     cell.addEventListener("click", async () => {
 
-      if (cell.innerHTML === "❌") {
+      if (cell.innerText === "Ocupado") {
         alert("Horario ocupado");
         return;
       }
@@ -127,13 +125,14 @@ function setupCalendar() {
 
       try {
 
+        // 🔥 VOLVEMOS A COMO FUNCIONABA ANTES
         const res = await fetch("/appointments", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            service_id: service.id,
+            title: service.title, // 👈 CLAVE
             day,
             time,
             user_id: user.id
@@ -150,9 +149,8 @@ function setupCalendar() {
 
         alert("✅ Cita creada");
 
-        cell.innerHTML = "❌";
-        cell.style.background = "#ffcccc";
-        cell.style.cursor = "not-allowed";
+        cell.innerText = "Ocupado";
+        cell.style.background = "#ccc";
 
       } catch (err) {
         console.error(err);
