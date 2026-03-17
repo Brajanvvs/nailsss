@@ -1,14 +1,20 @@
 const API = "";
 
 /* =========================
+CUANDO CARGA LA PÁGINA
+========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  loadServices();
+  setupCalendar();
+});
+
+/* =========================
 SELECCIONAR SERVICIO
 ========================= */
 function selectService(service) {
 
-  // guardar servicio
   localStorage.setItem("service", JSON.stringify(service));
 
-  // mostrar en pantalla
   const text = document.getElementById("selectedServiceText");
   text.innerText = "Servicio seleccionado: " + service.title;
 
@@ -49,68 +55,68 @@ async function loadServices() {
 
 }
 
-
 /* =========================
-CLICK EN CALENDARIO
+CALENDARIO
 ========================= */
-document.querySelectorAll("#calendar td[data-day]").forEach(cell => {
+function setupCalendar() {
 
-  cell.addEventListener("click", async () => {
+  const cells = document.querySelectorAll("#calendar td[data-day]");
 
-    const service = JSON.parse(localStorage.getItem("service"));
-    const user = JSON.parse(localStorage.getItem("user"));
+  cells.forEach(cell => {
 
-    if (!user) {
-      alert("Debe iniciar sesión");
-      window.location.href = "login.html";
-      return;
-    }
+    cell.addEventListener("click", async () => {
 
-    if (!service) {
-      alert("Seleccione un servicio primero");
-      return;
-    }
+      const service = JSON.parse(localStorage.getItem("service"));
+      const user = JSON.parse(localStorage.getItem("user"));
 
-    const day = cell.dataset.day;
-    const time = cell.dataset.time;
-
-    try {
-
-      const res = await fetch("/appointments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          title: service.title,
-          day,
-          time,
-          user_id: user.id
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || "Error creando cita");
+      if (!user) {
+        alert("Debe iniciar sesión");
+        window.location.href = "login.html";
         return;
       }
 
-      alert("✅ Cita creada");
+      if (!service) {
+        alert("Seleccione un servicio primero");
+        return;
+      }
 
-      // opcional: marcar celda ocupada
-      cell.innerText = "Ocupado";
-      cell.style.background = "#ccc";
+      const day = cell.dataset.day;
+      const time = cell.dataset.time;
 
-    } catch (err) {
-      console.error(err);
-      alert("Error conectando al servidor");
-    }
+      try {
+
+        const res = await fetch("/appointments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            title: service.title,
+            day,
+            time,
+            user_id: user.id
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || "Error creando cita");
+          return;
+        }
+
+        alert("✅ Cita creada");
+
+        cell.innerText = "Ocupado";
+        cell.style.background = "#ccc";
+
+      } catch (err) {
+        console.error(err);
+        alert("Error conectando al servidor");
+      }
+
+    });
 
   });
 
-});
-
-
-
-loadServices();
+}
