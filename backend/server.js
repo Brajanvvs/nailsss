@@ -79,14 +79,9 @@ app.use((err, req, res, next) => {
 });
 
 /* =========================
-   PUERTO (CRÍTICO)
+   PUERTO (FIX FINAL)
 ========================= */
-const PORT = process.env.PORT;
-
-if (!PORT) {
-  console.error("❌ ERROR: Railway no asignó PORT");
-  process.exit(1);
-}
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
