@@ -1,5 +1,4 @@
 const servicesContainer = document.getElementById("services");
-
 const user = JSON.parse(localStorage.getItem("user"));
 
 let selectedService = null;
@@ -8,69 +7,61 @@ let selectedService = null;
 /* =========================
 MOSTRAR PANEL ADMIN
 ========================= */
-
 if(user && user.role === "admin"){
-
-const adminPanel = document.getElementById("adminPanel");
-
-if(adminPanel){
-adminPanel.style.display = "block";
-}
-
+  const adminPanel = document.getElementById("adminPanel");
+  if(adminPanel){
+    adminPanel.style.display = "block";
+  }
 }
 
 
 /* =========================
-CARGAR SERVICIOS (FIX BOTÓN)
+CARGAR SERVICIOS (SIN onclick)
 ========================= */
-
 fetch("/services")
 .then(res => res.json())
 .then(data => {
 
-servicesContainer.innerHTML = "";
+  servicesContainer.innerHTML = "";
 
-data.forEach(service => {
+  data.forEach(service => {
 
-const div = document.createElement("div");
-div.className = "service";
+    const div = document.createElement("div");
+    div.className = "service";
 
-div.innerHTML = `
-<h3>${service.title}</h3>
-<p>$${service.price}</p>
-`;
+    div.innerHTML = `
+      <h3>${service.title}</h3>
+      <p>$${service.price}</p>
+    `;
+
+    // 🔥 botón seleccionar (fix real)
+    const btn = document.createElement("button");
+    btn.textContent = "Seleccionar servicio";
+
+    btn.addEventListener("click", () => {
+      selectService(service.id, service.title);
+    });
+
+    div.appendChild(btn);
 
 
-// 🔥 BOTÓN SEGURO (NO PARPADEA)
-const btn = document.createElement("button");
-btn.textContent = "Seleccionar servicio";
+    // 🔥 botón eliminar solo admin
+    if(user && user.role === "admin"){
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Eliminar";
+      delBtn.style.background = "#ff4d6d";
+      delBtn.style.marginTop = "8px";
 
-btn.addEventListener("click", () => {
-selectService(service.id, service.title);
-});
+      delBtn.addEventListener("click", () => {
+        deleteService(service.id);
+      });
 
-div.appendChild(btn);
+      div.appendChild(delBtn);
+    }
 
+    servicesContainer.appendChild(div);
 
-// 🔥 BOTÓN ADMIN
-if(user && user.role === "admin"){
-
-const delBtn = document.createElement("button");
-delBtn.textContent = "Eliminar";
-delBtn.style.background = "#ff4d6d";
-delBtn.style.marginTop = "8px";
-
-delBtn.addEventListener("click", () => {
-deleteService(service.id);
-});
-
-div.appendChild(delBtn);
-
-}
-
-servicesContainer.appendChild(div);
-
-});
+  });
 
 });
 
@@ -78,57 +69,51 @@ servicesContainer.appendChild(div);
 /* =========================
 SELECCIONAR SERVICIO
 ========================= */
+function selectService(serviceId, title){
 
-window.selectService = function(serviceId,title){
+  selectedService = serviceId;
 
-selectedService = serviceId;
+  const label = document.getElementById("selectedServiceText");
 
-const label = document.getElementById("selectedServiceText");
+  if(label){
+    label.innerText = "Servicio seleccionado: " + title;
+  }
 
-if(label){
-label.innerText = "Servicio seleccionado: " + title;
 }
-
-};
 
 
 /* =========================
 CALENDARIO
 ========================= */
-
 function loadCalendar(){
 
-document.querySelectorAll("#calendar td[data-day]").forEach(cell => {
+  document.querySelectorAll("#calendar td[data-day]").forEach(cell => {
+    cell.innerHTML = "";
+    cell.classList.remove("ocupado");
+  });
 
-cell.innerHTML = "";
-cell.classList.remove("ocupado");
+  fetch("/appointments")
+  .then(res => res.json())
+  .then(data => {
 
-});
+    data.forEach(app => {
 
-fetch("/appointments")
-.then(res => res.json())
-.then(data => {
+      if(app.status === "active"){
 
-data.forEach(app => {
+        const cell = document.querySelector(
+          `td[data-day="${app.day}"][data-time="${app.time}"]`
+        );
 
-if(app.status === "active"){
+        if(cell){
+          cell.innerHTML = "❌";
+          cell.classList.add("ocupado");
+        }
 
-const cell = document.querySelector(
-`td[data-day="${app.day}"][data-time="${app.time}"]`
-);
+      }
 
-if(cell){
+    });
 
-cell.innerHTML = "❌";
-cell.classList.add("ocupado");
-
-}
-
-}
-
-});
-
-});
+  });
 
 }
 
@@ -138,27 +123,26 @@ loadCalendar();
 /* =========================
 CLICK CALENDARIO
 ========================= */
-
 document.querySelectorAll("#calendar td[data-day]").forEach(cell => {
 
-cell.addEventListener("click", () => {
+  cell.addEventListener("click", () => {
 
-if(cell.classList.contains("ocupado")){
-alert("Horario ocupado");
-return;
-}
+    if(cell.classList.contains("ocupado")){
+      alert("Horario ocupado");
+      return;
+    }
 
-if(!selectedService){
-alert("Seleccione primero un servicio");
-return;
-}
+    if(!selectedService){
+      alert("Seleccione primero un servicio");
+      return;
+    }
 
-const day = cell.dataset.day;
-const time = cell.dataset.time;
+    const day = cell.dataset.day;
+    const time = cell.dataset.time;
 
-createAppointment(day,time);
+    createAppointment(day,time);
 
-});
+  });
 
 });
 
@@ -166,102 +150,80 @@ createAppointment(day,time);
 /* =========================
 CREAR CITA
 ========================= */
-
 function createAppointment(day,time){
 
-const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
 
-if(!user){
-alert("Debe iniciar sesión");
-window.location.href="login.html";
-return;
-}
+  if(!user){
+    alert("Debe iniciar sesión");
+    window.location.href="login.html";
+    return;
+  }
 
-fetch("/appointments",{
+  fetch("/appointments",{
 
-method:"POST",
+    method:"POST",
 
-headers:{
-"Content-Type":"application/json"
-},
+    headers:{
+      "Content-Type":"application/json"
+    },
 
-body:JSON.stringify({
-user_id:user.id,
-service_id:selectedService,
-day:day,
-time:time
-})
+    body:JSON.stringify({
+      user_id:user.id,
+      service_id:selectedService,
+      day:day,
+      time:time
+    })
 
-})
-.then(res=>res.json())
-.then(data=>{
-
-alert("Cita creada");
-
-location.reload();
-
-});
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    alert("Cita creada");
+    location.reload();
+  });
 
 }
 
 
 /* =========================
-CREAR SERVICIO ADMIN
+CREAR SERVICIO
 ========================= */
-
 function createService(){
 
-const title = document.getElementById("title").value;
-const price = document.getElementById("price").value;
-const image = document.getElementById("image").value;
+  const title = document.getElementById("title").value;
+  const price = document.getElementById("price").value;
+  const image = document.getElementById("image").value;
 
-fetch("/services",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-title,
-price,
-image
-})
-
-})
-.then(res=>res.json())
-.then(data=>{
-
-alert("Servicio creado");
-
-location.reload();
-
-});
+  fetch("/services",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({ title, price, image })
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    alert("Servicio creado");
+    location.reload();
+  });
 
 }
 
 
 /* =========================
-ELIMINAR SERVICIO ADMIN
+ELIMINAR SERVICIO
 ========================= */
-
 function deleteService(id){
 
-if(!confirm("¿Eliminar este servicio?")) return;
+  if(!confirm("¿Eliminar este servicio?")) return;
 
-fetch(`/services/${id}`,{
-
-method:"DELETE"
-
-})
-.then(res=>res.json())
-.then(data=>{
-
-alert("Servicio eliminado");
-
-location.reload();
-
-});
+  fetch(`/services/${id}`,{
+    method:"DELETE"
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    alert("Servicio eliminado");
+    location.reload();
+  });
 
 }

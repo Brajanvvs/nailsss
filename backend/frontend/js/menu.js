@@ -5,32 +5,17 @@ document.addEventListener("DOMContentLoaded", function(){
   const loginLink = document.getElementById("loginLink");
   const registerLink = document.getElementById("registerLink");
   const logoutLink = document.getElementById("logoutLink");
-  const adminPanel = document.getElementById("adminPanel"); // 🔥 nuevo
 
   if(user){
-
-    loginLink.style.display = "none";
-    registerLink.style.display = "none";
-    logoutLink.style.display = "inline";
-
-    // 🔥 MOSTRAR PANEL ADMIN
-    if(user.role === "admin" && adminPanel){
-      adminPanel.style.display = "block";
-    }
-
+    if(loginLink) loginLink.style.display = "none";
+    if(registerLink) registerLink.style.display = "none";
+    if(logoutLink) logoutLink.style.display = "inline";
   }
 
 });
 
 
-/* =========================
-   CERRAR SESIÓN
-========================= */
-
 function logout(){
-
   localStorage.removeItem("user");
-
   window.location.href = "index.html";
-
 }
