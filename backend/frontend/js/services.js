@@ -32,6 +32,7 @@ async function loadServices() {
     const data = await res.json();
 
     const container = document.getElementById("services");
+    const user = JSON.parse(localStorage.getItem("user"));
 
     container.innerHTML = "";
 
@@ -45,6 +46,14 @@ async function loadServices() {
           <button onclick='selectService(${JSON.stringify(service)})'>
             Seleccionar
           </button>
+
+          ${
+            user && user.role === "admin"
+              ? `<button onclick="deleteService(${service.id})">
+                  Eliminar
+                 </button>`
+              : ""
+          }
         </div>
       `;
 
@@ -52,6 +61,43 @@ async function loadServices() {
 
   } catch (err) {
     console.error("Error cargando servicios:", err);
+  }
+
+}
+
+/* =========================
+ELIMINAR SERVICIO (SOLO ADMIN)
+========================= */
+async function deleteService(id) {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user || user.role !== "admin") {
+    alert("No autorizado");
+    return;
+  }
+
+  if (!confirm("¿Eliminar servicio?")) return;
+
+  try {
+
+    const res = await fetch("/services/" + id, {
+      method: "DELETE"
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Error eliminando");
+      return;
+    }
+
+    alert("Servicio eliminado");
+    loadServices();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error conectando al servidor");
   }
 
 }
