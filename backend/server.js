@@ -3,9 +3,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const fs = require("fs");
 
-// 🔥 NUEVO (Mongo + PQRS)
+// 🔥 Mongo + PQRS
 const connectMongo = require("./mongo");
 const pqrsRoutes = require("./routes/pqrs");
 
@@ -53,32 +52,28 @@ app.use("/services", servicesRoutes);
 app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
-// 🔥 NUEVA RUTA PQRS (Mongo)
+// 🔥 PQRS (Mongo)
 app.use("/api/pqrs", pqrsRoutes);
 
 /* =========================
-   FRONTEND (IMPORTANTE)
+   FRONTEND (SEGURO PARA RAILWAY)
 ========================= */
 const frontendPath = path.join(__dirname, "frontend");
 
-if (fs.existsSync(frontendPath)) {
-  console.log("✅ Frontend encontrado");
+console.log("📂 Frontend path:", frontendPath);
 
-  // servir archivos estáticos
-  app.use(express.static(frontendPath));
+// servir archivos estáticos
+app.use(express.static(frontendPath));
 
-  // ruta raíz
-  app.get("/", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
+// 🔥 ROOT SIEMPRE RESPONDE (IMPORTANTE)
+app.get("/", (req, res) => {
+  res.send("Servidor funcionando 🚀");
+});
 
-} else {
-  console.log("⚠️ Frontend NO encontrado");
-
-  app.get("/", (req, res) => {
-    res.send("API funcionando 🚀");
-  });
-}
+// 👉 opcional: ruta para tu frontend real
+app.get("/home", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 /* =========================
    404
@@ -99,9 +94,9 @@ app.use((err, req, res, next) => {
 });
 
 /* =========================
-   PUERTO (RAILWAY OK)
+   PUERTO (RAILWAY)
 ========================= */
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
