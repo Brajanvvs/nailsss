@@ -5,6 +5,11 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 
+// 🔥 NUEVO (Mongo + PQRS)
+const connectMongo = require("./mongo");
+const pqrsRoutes = require("./routes/pqrs");
+
+// 🔹 Rutas existentes
 const servicesRoutes = require("./routes/services");
 const authRoutes = require("./routes/auth");
 const appointmentsRoutes = require("./routes/appointments");
@@ -30,6 +35,11 @@ app.use(cors());
 app.use(express.json());
 
 /* =========================
+   🔥 MONGO DB
+========================= */
+connectMongo();
+
+/* =========================
    HEALTH CHECK
 ========================= */
 app.get("/health", (req, res) => {
@@ -43,6 +53,9 @@ app.use("/services", servicesRoutes);
 app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 
+// 🔥 NUEVA RUTA PQRS (Mongo)
+app.use("/api/pqrs", pqrsRoutes);
+
 /* =========================
    FRONTEND (IMPORTANTE)
 ========================= */
@@ -54,7 +67,7 @@ if (fs.existsSync(frontendPath)) {
   // servir archivos estáticos
   app.use(express.static(frontendPath));
 
-  // cuando entren a "/"
+  // ruta raíz
   app.get("/", (req, res) => {
     res.sendFile(path.join(frontendPath, "index.html"));
   });
@@ -88,7 +101,7 @@ app.use((err, req, res, next) => {
 /* =========================
    PUERTO (RAILWAY OK)
 ========================= */
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
