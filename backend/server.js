@@ -34,12 +34,20 @@ app.use(cors());
 app.use(express.json());
 
 /* =========================
+   🔥 HEALTH CHECK (CRÍTICO PARA RAILWAY)
+========================= */
+// 👉 ESTA RUTA DEBE IR ARRIBA
+app.get("/", (req, res) => {
+  res.status(200).send("OK");
+});
+
+/* =========================
    🔥 MONGO DB
 ========================= */
 connectMongo();
 
 /* =========================
-   HEALTH CHECK
+   HEALTH CHECK EXTRA
 ========================= */
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
@@ -56,7 +64,7 @@ app.use("/appointments", appointmentsRoutes);
 app.use("/api/pqrs", pqrsRoutes);
 
 /* =========================
-   FRONTEND (SEGURO PARA RAILWAY)
+   FRONTEND
 ========================= */
 const frontendPath = path.join(__dirname, "frontend");
 
@@ -65,12 +73,7 @@ console.log("📂 Frontend path:", frontendPath);
 // servir archivos estáticos
 app.use(express.static(frontendPath));
 
-// 🔥 ROOT SIEMPRE RESPONDE (IMPORTANTE)
-app.get("/", (req, res) => {
-  res.send("Servidor funcionando 🚀");
-});
-
-// 👉 opcional: ruta para tu frontend real
+// 👉 opcional: acceder a tu index
 app.get("/home", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
