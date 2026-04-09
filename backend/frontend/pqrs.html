@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>PQRS - Nails Bar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff0f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      width: 350px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #d63384;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #d63384;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #b02a6b;
+    }
+
+    .msg {
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Formulario PQRS</h2>
+
+  <form id="pqrsForm">
+    <input type="text" id="nombre" placeholder="Nombre" required>
+    <input type="email" id="email" placeholder="Correo" required>
+
+    <select id="tipo" required>
+      <option value="">Seleccione tipo</option>
+      <option value="peticion">Petición</option>
+      <option value="queja">Queja</option>
+      <option value="reclamo">Reclamo</option>
+      <option value="sugerencia">Sugerencia</option>
+    </select>
+
+    <textarea id="mensaje" placeholder="Escribe tu mensaje..." required></textarea>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <div class="msg" id="respuesta"></div>
+</div>
+
+<script>
+  const form = document.getElementById("pqrsForm");
+  const respuesta = document.getElementById("respuesta");
+
+  // 🔥 CAMBIO IMPORTANTE (dinámico)
+  const API_URL = window.location.origin;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data = {
+      nombre: document.getElementById("nombre").value,
+      email: document.getElementById("email").value,
+      tipo: document.getElementById("tipo").value,
+      mensaje: document.getElementById("mensaje").value
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/api/pqrs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) throw new Error("Error al enviar");
+
+      respuesta.innerHTML = "✅ PQRS enviada correctamente";
+      respuesta.style.color = "green";
+
+      form.reset();
+
+    } catch (error) {
+      respuesta.innerHTML = "❌ Error al enviar PQRS";
+      respuesta.style.color = "red";
+    }
+  });
+</script>
+
+</body>
+</html>
