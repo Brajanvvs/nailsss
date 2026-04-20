@@ -123,6 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+}
+
+
+
+
 /* =========================
 CANCELAR CITA
 ========================= */
