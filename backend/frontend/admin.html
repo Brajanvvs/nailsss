@@ -3,43 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>Panel Admin - Nail Salon</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
     <link rel="stylesheet" href="css/styles.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #fdf2f4; padding: 20px; }
         .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h1, h2 { color: #d63384; border-bottom: 2px solid #ffb3c1; padding-bottom: 8px; }
         
-        /* Estilos para la lista de servicios */
+        /* Estilos para servicios */
         .service-list { margin-bottom: 30px; }
         .item-service { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
 
-        /* Estilos para las PQRS (MongoDB) */
+        /* Estilos para PQRS */
         .pqrs-box { background: #fff9fa; border-left: 5px solid #ffb3c1; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
-        .pqrs-header { display: flex; justify-content: space-between; font-size: 0.8em; color: #888; }
+        .pqrs-header { display: flex; justify-content: space-between; font-size: 0.8em; color: #888; margin-bottom: 8px; }
         .badge { background: #ffb3c1; color: white; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        
+        .btn-pdf { background-color: #2c3e50; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-pdf:hover { background-color: #1a252f; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>Panel de Administración</h1>
-        <button onclick="location.href='index.html'">Volver al Inicio</button>
+        <button onclick="location.href='index.html'" style="margin-bottom: 20px;">Volver al Inicio</button>
 
         <section>
-            <h2>Gestión de Servicios</h2>
-            <div style="margin-bottom: 20px;">
-                <input id="title" placeholder="Nombre">
-                <input id="price" placeholder="Precio">
-                <input id="image" placeholder="Imagen URL">
-                <button onclick="createService()" style="background: #ffb3c1; color: white; border: none; padding: 8px;">Crear</button>
+            <h2>Gestión de Servicios (PostgreSQL)</h2>
+            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <input id="title" placeholder="Nombre" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd; flex: 1;">
+                <input id="price" placeholder="Precio" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd; width: 100px;">
+                <input id="image" placeholder="URL Imagen" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd; flex: 1;">
+                <button onclick="createService()" style="background: #ffb3c1; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Crear</button>
             </div>
             <div id="services" class="service-list"></div>
         </section>
 
-        <hr>
+        <hr style="border: 0; border-top: 2px solid #ffb3c1; margin: 40px 0;">
 
-        <section>
-            <h2>Buzón de PQRS (Mensajes Recibidos)</h2>
+        <section id="admin-pqrs-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="border: none; margin: 0;">Buzón de PQRS (MongoDB)</h2>
+                <button onclick="generarPDF()" class="btn-pdf">
+                    📄 Descargar Reporte PDF
+                </button>
+            </div>
             <div id="pqrsList">
                 <p>Cargando mensajes de los clientes...</p>
             </div>
