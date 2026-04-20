@@ -99,8 +99,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Función cancelar (Fuera para que el onclick del HTML la vea)
 window.cancelarCita = function(id) {
-    if (confirm("¿Cancelar cita?")) {
-        fetch(`/appointments/${id}`, { method: "DELETE" })
-            .then(() => location.reload());
-    }
+    if (!confirm("¿Seguro que desea eliminar esta cita?")) return;
+
+    fetch(`/appointments/${id}`, {
+        method: "DELETE"
+    })
+    .then(res => {
+        if (res.ok) {
+            alert("✅ Cita eliminada");
+            location.reload(); // Forzamos la recarga para limpiar la lista
+        } else {
+            alert("❌ No se pudo borrar. Es posible que la cita ya no exista.");
+            location.reload();
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        alert("Error de conexión al borrar");
+    });
 };
