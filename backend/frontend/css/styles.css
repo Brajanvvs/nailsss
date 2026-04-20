@@ -1,231 +1,179 @@
-body{
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background:#fff0f5;
-margin:0;
-padding:0;
-text-align:center;
-color:#444;
+:root {
+    --rosa-principal: #ff69b4;
+    --rosa-suave: #ffc0cb;
+    --rosa-fondo: #fff0f5;
+    --rosa-hover: #ff1493;
+    --blanco: #ffffff;
+    --sombra: rgba(255, 105, 180, 0.15);
 }
 
-/* HEADER */
-
-h1{
-background:#ffc0cb;
-padding:20px;
-margin:0;
-color:#fff;
-letter-spacing:2px;
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--rosa-fondo);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    color: #444;
+    line-height: 1.6;
 }
 
-/* MENU */
+/* HEADER - Con un degradado sutil */
+h1 {
+    background: linear-gradient(135deg, #ffc0cb 0%, #ffb3c1 100%);
+    padding: 30px;
+    margin: 0;
+    color: #fff;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-size: 1.8rem;
+    box-shadow: 0 4px 10px var(--sombra);
+}
 
-a{
-margin:10px;
-text-decoration:none;
-color:#ff69b4;
-font-weight:bold;
+/* MENU - Con efecto de línea inferior al pasar el mouse */
+a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: var(--rosa-principal);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+    position: relative;
+    padding: 5px 0;
+}
+
+a:hover {
+    color: var(--rosa-hover);
 }
 
 /* CONTENEDOR SERVICIOS */
-
-#services{
-display:flex;
-justify-content:center;
-flex-wrap:wrap;
-gap:20px;
-margin-top:30px;
+#services {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin: 40px auto;
+    max-width: 1200px;
+    padding: 0 20px;
 }
 
-/* TARJETAS */
-
-.service{
-background:white;
-border-radius:15px;
-padding:20px;
-width:220px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-transition:transform 0.2s;
+/* TARJETAS - Más modernas y limpias */
+.service {
+    background: var(--blanco);
+    border-radius: 20px;
+    padding: 25px;
+    width: 240px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 192, 203, 0.3);
 }
 
-.service:hover{
-transform:translateY(-5px);
+.service:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px var(--sombra);
 }
 
-/* TITULO */
-
-.service h3{
-color:#ff69b4;
+.service h3 {
+    color: var(--rosa-principal);
+    margin-top: 0;
 }
 
-/* PRECIO */
-
-.service p{
-font-size:18px;
+/* BOTONES - Estilo redondeado moderno */
+button {
+    background: var(--rosa-principal);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px var(--sombra);
 }
 
-/* BOTONES */
-
-button{
-background:#ff69b4;
-border:none;
-color:white;
-padding:10px 15px;
-border-radius:10px;
-cursor:pointer;
-font-weight:bold;
+button:hover {
+    background: var(--rosa-hover);
+    box-shadow: 0 6px 15px var(--sombra);
+    transform: scale(1.02);
 }
 
-button:hover{
-background:#ff1493;
+/* CALENDARIO - Más espaciado y elegante */
+table {
+    margin: 50px auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--blanco);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 
-/* CALENDARIO */
-
-table{
-margin:40px auto;
-border-collapse:collapse;
-background:white;
-border-radius:10px;
-overflow:hidden;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
+th {
+    background: var(--rosa-suave);
+    color: white;
+    padding: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
 }
 
-th{
-background:#ffc0cb;
-color:white;
-padding:12px;
+td {
+    padding: 20px;
+    border-bottom: 1px solid #fff0f5;
+    border-right: 1px solid #fff0f5;
+    min-width: 100px;
+    transition: background 0.2s;
 }
 
-td{
-padding:15px;
-border:1px solid #f2f2f2;
-min-width:90px;
-cursor:pointer;
+td:hover:not(.ocupado) {
+    background: #fff9fa;
 }
 
-td:hover{
-background:#ffe4e9;
+/* ESTADOS DEL CALENDARIO */
+td.ocupado {
+    background: #ffdae1 !important;
+    color: #d63384;
+    font-weight: bold;
+    cursor: not-allowed;
 }
 
-/* OCUPADO */
-
-td.ocupado{
-background:#ffb6c1;
-color:white;
-cursor:not-allowed;
+/* FORMULARIOS - Inputs más suaves */
+.form-container, .auth-container {
+    background: var(--blanco);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255, 192, 203, 0.2);
 }
 
-/* LIBRE */
-
-td.libre{
-background:white;
+.form-container input, .auth-container input {
+    width: 100%;
+    padding: 14px;
+    margin: 12px 0;
+    border-radius: 10px;
+    border: 2px solid #fdf2f4;
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+    background: #fffcfd;
 }
 
-
-/* FORMULARIOS */
-
-.form-container{
-width:340px;
-margin:80px auto;
-background:white;
-padding:35px;
-border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-text-align:center;
+.form-container input:focus, .auth-container input:focus {
+    outline: none;
+    border-color: var(--rosa-principal);
+    background: #fff;
 }
 
-.form-container h2{
-margin-bottom:20px;
+/* Ajuste específico para el link de Admin que creamos antes */
+#adminPqrsLink {
+    background: #fff;
+    border: 2px solid var(--rosa-principal);
+    padding: 8px 15px;
+    border-radius: 50px;
+    margin-top: 20px;
 }
 
-.form-container input{
-
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-border:1px solid #ddd;
-font-size:15px;
-
-text-align:left;   /* ← ESTA ES LA CLAVE */
-
-}
-
-.form-container button{
-width:100%;
-margin-top:10px;
-}
-
-.form-container a{
-display:block;
-margin-top:15px;
-}
-
-
-/* AUTH PAGES */
-
-.auth-container{
-width:400px;
-margin:auto;
-margin-top:120px;
-background:white;
-padding:40px;
-border-radius:15px;
-box-shadow:0 10px 25px rgba(0,0,0,0.1);
-text-align:center;
-}
-
-.auth-container h2{
-margin-bottom:30px;
-color:#333;
-}
-
-.auth-container form{
-display:flex;
-flex-direction:column;
-gap:15px;
-}
-
-.auth-container input{
-padding:12px;
-border-radius:8px;
-border:1px solid #ddd;
-font-size:16px;
-width:100%;
-box-sizing:border-box;
-}
-
-.auth-container button{
-background:#ff69b4;
-color:white;
-border:none;
-padding:12px;
-border-radius:10px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.auth-container button:hover{
-background:#ff4fa3;
-}
-
-.auth-container a{
-display:block;
-margin-top:15px;
-color:#ff69b4;
-text-decoration:none;
-}
-
-/* FIX LOGIN / REGISTER */
-
-.auth-container{
-text-align:center;
-}
-
-.auth-container form{
-width:100%;
-}
-
-.auth-container input{
-text-align:left;
+#adminPqrsLink:hover {
+    background: var(--rosa-principal);
+    color: white;
 }
