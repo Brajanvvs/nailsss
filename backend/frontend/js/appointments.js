@@ -29,24 +29,26 @@ if (container) {
       }
 
       data.forEach(app => {
-      if (app.status === "active") {
-        // 💡 Convertimos todo a minúsculas y quitamos espacios
-        const diaDB = app.day.trim().toLowerCase();
-        const horaDB = app.time.trim().toLowerCase();
-        
-        // Buscamos la celda comparando también en minúsculas
-        const celdas = document.querySelectorAll('#calendar td[data-day]');
-        const celdaOcupada = Array.from(celdas).find(td => 
-          td.getAttribute('data-day').trim().toLowerCase() === diaDB && 
-          td.getAttribute('data-time').trim().toLowerCase() === horaDB
-        );
+  if (app.status === "active") {
+    // 1. Limpiamos agresivamente los datos de la base de datos
+    const diaDB = app.day.trim().toLowerCase();
+    const horaDB = app.time.trim().toLowerCase().replace(/^0/, ''); // Quita el "0" inicial si existe (ej: 07:00 -> 7:00)
 
-        if (celdaOcupada) {
-          celdaOcupada.innerHTML = "❌";
-          celdaOcupada.style.backgroundColor = "#ffb3c1";
-          celdaOcupada.style.pointerEvents = "none"; 
-        }
+    // 2. Buscamos en TODAS las celdas de la tabla
+    const todasLasCeldas = document.querySelectorAll('#calendar td');
+    
+    todasLasCeldas.forEach(celda => {
+      const diaHTML = (celda.getAttribute('data-day') || "").trim().toLowerCase();
+      const horaHTML = (celda.getAttribute('data-time') || "").trim().toLowerCase().replace(/^0/, '');
+
+      if (diaHTML === diaDB && horaHTML === horaDB) {
+        celda.innerHTML = "❌";
+        celda.style.backgroundColor = "#ffb3c1";
+        celda.style.pointerEvents = "none";
+        console.log(`✅ ¡Éxito! Marcada celda: ${diaDB} ${horaDB}`);
       }
+    });
+  }
 
         // --- 📋 MOSTRAR LISTA DE CITAS ---
         container.innerHTML += `
