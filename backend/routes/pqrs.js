@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 
-// Definición del esquema (Asegúrate de que coincida con el frontend)
+// Esquema de PQRS
 const pqrsSchema = new mongoose.Schema({
     nombre: String,
     email: String,
@@ -14,7 +14,7 @@ const pqrsSchema = new mongoose.Schema({
 
 const PQRS = mongoose.model("PQRS", pqrsSchema);
 
-// GET: Listar PQRS
+// GET: Listar todas las PQRS
 router.get("/", async (req, res) => {
     try {
         const data = await PQRS.find().sort({ fecha: -1 });
@@ -24,7 +24,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// POST: Crear PQRS (Desde el formulario del cliente)
+// POST: Crear una nueva PQRS
 router.post("/", async (req, res) => {
     try {
         const pqrs = new PQRS(req.body);
@@ -32,6 +32,21 @@ router.post("/", async (req, res) => {
         res.status(201).json(pqrs);
     } catch (err) {
         res.status(400).json({ message: "Error al guardar", error: err.message });
+    }
+});
+
+// PATCH: Actualizar el estado (completada o cancelada)
+router.patch("/:id", async (req, res) => {
+    try {
+        const { estado } = req.body;
+        const pqrsActualizada = await PQRS.findByIdAndUpdate(
+            req.params.id,
+            { estado },
+            { new: true }
+        );
+        res.json(pqrsActualizada);
+    } catch (err) {
+        res.status(400).json({ message: "Error al actualizar estado", error: err.message });
     }
 });
 

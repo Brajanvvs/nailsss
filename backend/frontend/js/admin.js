@@ -68,14 +68,30 @@ function loadPQRS() {
             }
 
             data.forEach(item => {
+                // Definir color según el estado
+                let colorBadge = "#f39c12"; // Naranja (Pendiente)
+                if (item.estado === "completada") colorBadge = "#27ae60"; // Verde
+                if (item.estado === "cancelada") colorBadge = "#e74c3c"; // Rojo
+
                 container.innerHTML += `
                     <div class="pqrs-box">
                         <div class="pqrs-header">
-                            <span class="badge">${item.tipo.toUpperCase()}</span>
+                            <span class="badge" style="background: ${colorBadge}">${item.estado.toUpperCase()}</span>
                             <span>${new Date(item.fecha).toLocaleString()}</span>
                         </div>
                         <p style="margin: 5px 0;"><strong>${item.nombre}</strong> (${item.email})</p>
                         <p style="font-style: italic; color: #444;">"${item.mensaje}"</p>
+                        
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button onclick="updateStatus('${item._id}', 'completada')" 
+                                style="background:#27ae60; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
+                                ✅ Completar
+                            </button>
+                            <button onclick="updateStatus('${item._id}', 'cancelada')" 
+                                style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
+                                ❌ Cancelar
+                            </button>
+                        </div>
                     </div>`;
             });
         })
@@ -83,6 +99,20 @@ function loadPQRS() {
             console.error("Error cargando PQRS:", err);
             container.innerHTML = "<p style='color:red;'>Error al conectar con MongoDB.</p>";
         });
+}
+
+// Función para actualizar el estado en MongoDB
+function updateStatus(id, nuevoEstado) {
+    fetch(`/api/pqrs/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: nuevoEstado })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Error al actualizar");
+        loadPQRS(); // Recargar la lista para ver los cambios
+    })
+    .catch(err => alert("Error: " + err.message));
 }
 
 // --- GENERAR REPORTE PDF ---
@@ -96,32 +126,29 @@ async function generarPDF() {
 
         if (data.length === 0) return alert("No hay datos para exportar.");
 
-        // Título del PDF
         doc.setFontSize(18);
-        doc.setTextColor(214, 51, 132); // Rosa Nails Bar
+        doc.setTextColor(214, 51, 132); 
         doc.text("Reporte de PQRS Recibidas", 14, 20);
         
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 28);
 
-        // Mapear datos para la tabla
         const rows = data.map(item => [
             new Date(item.fecha).toLocaleDateString(),
             item.tipo.toUpperCase(),
             item.nombre,
             item.mensaje,
-            item.estado
+            item.estado.toUpperCase()
         ]);
 
-        // Crear tabla
         doc.autoTable({
             startY: 35,
             head: [['Fecha', 'Tipo', 'Cliente', 'Mensaje', 'Estado']],
             body: rows,
-            headStyles: { fillColor: [255, 105, 180] }, // Rosa principal
+            headStyles: { fillColor: [255, 105, 180] }, 
             styles: { fontSize: 8, overflow: 'linebreak' },
-            columnStyles: { 3: { cellWidth: 80 } } // Darle más espacio al mensaje
+            columnStyles: { 3: { cellWidth: 80 } } 
         });
 
         doc.save("Reporte_NailsBar_PQRS.pdf");
