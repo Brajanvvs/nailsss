@@ -25,34 +25,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     td.style.pointerEvents = "auto";
                 });
 
-                data.forEach(app => {
-                    if (app.status === "active") {
-                        // NORMALIZACIÓN TOTAL
-                        const diaDB = app.day.trim().toLowerCase();
-                        const horaDB = app.time.trim().toLowerCase().replace(/^0/, '');
+            data.forEach(app => {
+                // Solo procesamos y mostramos citas que estén "active"
+                if (app.status === "active") {
+                    
+                    // --- 1. LÓGICA PARA MARCAR EL CALENDARIO ---
+                    // Normalizamos los datos de la DB para comparar correctamente
+                    const diaDB = app.day.trim().toLowerCase();
+                    const horaDB = app.time.trim().toLowerCase().replace(/^0/, '');
 
-                        todasLasCeldas.forEach(celda => {
-                            const diaHTML = celda.getAttribute('data-day').trim().toLowerCase();
-                            const horaHTML = celda.getAttribute('data-time').trim().toLowerCase().replace(/^0/, '');
+                    todasLasCeldas.forEach(celda => {
+                        const diaHTML = celda.getAttribute('data-day').trim().toLowerCase();
+                        const horaHTML = celda.getAttribute('data-time').trim().toLowerCase().replace(/^0/, '');
 
-                            if (diaHTML === diaDB && horaHTML === horaDB) {
-                                celda.innerHTML = "❌";
-                                celda.style.backgroundColor = "#ffb3c1";
-                                celda.style.pointerEvents = "none";
-                                console.log(`✅ Marcada: ${diaDB} ${horaDB}`);
-                            }
-                        });
-                    }
+                        if (diaHTML === diaDB && horaHTML === horaDB) {
+                            celda.innerHTML = "❌";
+                            celda.style.backgroundColor = "#ffb3c1";
+                            celda.style.pointerEvents = "none"; // Bloquea clics para evitar el Error 400
+                            console.log(`✅ Marcada en calendario: ${diaDB} ${horaDB}`);
+                        }
+                    });
 
-                    // Lista de texto abajo
+                    // --- 2. LÓGICA PARA LA LISTA DE TEXTO (Solo activas con botón) ---
                     if (container) {
                         container.innerHTML += `
-                            <div class="appointment" style="border:1px solid #ddd; padding:10px; margin:5px;">
+                            <div class="appointment" style="border:1px solid #ddd; padding:10px; margin:5px; border-radius:8px; background-color: #fff;">
                                 <strong>${app.title}</strong> - ${app.day} a las ${app.time}
-                                <button onclick="cancelarCita(${app.id})">Cancelar</button>
+                                <br>
+                                <button onclick="cancelarCita(${app.id})" style="background-color: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-top: 5px;">
+                                    Cancelar Cita
+                                </button>
                             </div>`;
                     }
-                });
+                } 
+                // Si la cita NO está "active", el código simplemente la ignora:
+                // No pone la X y no añade el div con el botón de cancelar.
+            });
             })
             .catch(err => console.error("Error cargando citas:", err));
     }
