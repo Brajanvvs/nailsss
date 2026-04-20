@@ -21,7 +21,7 @@ if (container) {
 
 
 /* ==========================================
-   GESTIÓN DE CITAS COMPLETA
+   FUNCIÓN PRINCIPAL DE CITAS
    ========================================== */
 
 function cargarCitas() {
@@ -31,61 +31,65 @@ function cargarCitas() {
   fetch(url)
     .then(res => res.json())
     .then(data => {
+      console.log("Datos recibidos:", data); // Esto te dirá en consola qué llega
       container.innerHTML = "";
 
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         container.innerHTML = "<p>No tienes citas</p>";
         return;
       }
 
       data.forEach(app => {
-        // --- 1. MARCAR EL CALENDARIO (La parte que faltaba) ---
-        // Usamos trim() para que "Lunes " sea igual a "Lunes"
+        // --- 1. MARCAR EL CALENDARIO ---
         if (app.status === "active") {
-          const dia = app.day.trim();
-          const hora = app.time.trim();
+          // Normalizamos: quitamos espacios y pasamos a minúsculas para comparar
+          const diaDB = app.day.trim();
+          const horaDB = app.time.trim();
           
-          // Buscamos la celda exacta
-          const celdaOcupada = document.querySelector(`td[data-day="${dia}"][data-time="${hora}"]`);
+          // Buscamos la celda (aquí el selector debe ser exacto a tu HTML)
+          const celda = document.querySelector(`td[data-day="${diaDB}"][data-time="${horaDB}"]`);
           
-          if (celdaOcupada) {
-            celdaOcupada.innerHTML = "❌";
-            celdaOcupada.style.backgroundColor = "#ffb3c1";
-            celdaOcupada.style.pointerEvents = "none"; // Bloquea el clic
+          if (celda) {
+            celda.innerHTML = "❌";
+            celda.style.backgroundColor = "#ffb3c1";
+            celda.style.pointerEvents = "none";
           }
         }
 
-        // --- 2. MOSTRAR LA LISTA (Tu código original restaurado) ---
+        // --- 2. MOSTRAR LISTA ABAJO ---
         container.innerHTML += `
-          <div class="appointment">
+          <div class="appointment" style="border: 1px solid #ccc; margin: 5px; padding: 10px;">
             <h3>${app.title || "Servicio"}</h3>
             <p>${app.day} - ${app.time}</p>
             <p>Usuario: ${app.name || "N/A"}</p>
-
-            ${
-              app.status === "active"
-                ? `<button onclick="cancel(${app.id})">Cancelar</button>`
-                : `<p style="color:red;">Cancelada</p>`
-            }
+            ${app.status === "active" 
+                ? `<button onclick="cancelarCita(${app.id})">Cancelar</button>` 
+                : `<p style="color:red;">Cancelada</p>`}
           </div>
         `;
       });
     })
     .catch(err => {
-      console.error("Error cargando citas:", err);
-      container.innerHTML = "<p>Error cargando citas</p>";
+      console.error("Error en fetch:", err);
+      container.innerHTML = "<p>Error al cargar los datos del servidor.</p>";
     });
 }
 
+// Función global para que el botón 'onclick' funcione
+window.cancelarCita = function(id) {
+    if(confirm("¿Cancelar cita?")) {
+        fetch(`https://nailsss-production.up.railway.app/appointments/${id}`, { method: "DELETE" })
+        .then(() => location.reload());
+    }
+}
+
 /* ==========================================
-   EVENTO PARA CREAR CITA AL HACER CLIC
+   EVENTO DE CLICK Y ARRANQUE
    ========================================== */
 document.addEventListener('DOMContentLoaded', () => {
-  // Ejecutar la carga inicial
   cargarCitas();
 
   const celdas = document.querySelectorAll('#calendar td[data-day]');
-
   celdas.forEach(celda => {
     celda.addEventListener('click', () => {
       const day = celda.getAttribute('data-day');
@@ -110,13 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(res => {
         if (res.ok) {
-          alert("Servicio agendado");
+          alert("Agendado con éxito");
           location.reload();
         } else {
-          alert("Este horario ya no está disponible");
+          alert("Error: Verifica si el horario ya está ocupado");
         }
-      })
-      .catch(err => console.error("Error:", err));
+      });
     });
   });
 });
