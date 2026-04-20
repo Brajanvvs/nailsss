@@ -2,36 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Administración</title>
-    <link rel="stylesheet" href="css/style.css"> </head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Nail Salon</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fdf2f4; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        h1, h2 { color: #d63384; border-bottom: 2px solid #ffb3c1; padding-bottom: 10px; }
+        
+        /* Sección Servicios */
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; flex: 1; min-width: 200px; }
+        .btn-add { background-color: #ffb3c1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        /* Sección PQRS */
+        #pqrsList { display: grid; gap: 15px; margin-top: 20px; }
+        .pqrs-card { background: #fff9fa; border-left: 6px solid #ffb3c1; padding: 20px; border-radius: 10px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .pqrs-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .pqrs-type { background: #ffb3c1; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .pqrs-date { font-size: 0.8rem; color: #888; }
+        .pqrs-msg { font-style: italic; background: white; padding: 10px; border-radius: 5px; margin: 10px 0; border: 1px solid #eee; }
+        .pqrs-footer { font-size: 0.9rem; color: #555; border-top: 1px solid #eee; pt: 10px; margin-top: 10px; }
+    </style>
+</head>
 <body>
 
-    <h1>Panel Administrativo</h1>
-    <button onclick="location.href='index.html'">Volver al Inicio</button>
-    <hr>
+<div class="container">
+    <h1>Panel de Administración</h1>
+    <p>Bienvenido al centro de gestión.</p>
 
     <section>
-        <h2>Gestionar Servicios</h2>
-        <div style="background: #f4f4f4; padding: 15px; border-radius: 8px;">
-            <input id="title" placeholder="Título del servicio">
+        <h2>Gestión de Servicios</h2>
+        <div class="form-group">
+            <input id="title" placeholder="Nombre del servicio">
             <input id="price" placeholder="Precio">
             <input id="image" placeholder="URL de la imagen">
-            <button onclick="createService()">Crear Servicio</button>
+            <button class="btn-add" onclick="createService()">Añadir Servicio</button>
         </div>
-        
-        <div id="services" style="margin-top: 20px;">
+        <div id="services">
             </div>
     </section>
 
-    <hr>
+    <br><br>
 
-    <section>
-        <h2>Buzón de PQRS</h2>
-        <div id="pqrsList" style="display: flex; flex-direction: column; gap: 10px;">
-            <p>Cargando mensajes...</p>
+    <section id="admin-pqrs-section">
+        <h2>Buzón de PQRS y Mensajes</h2>
+        <div id="pqrsList">
+            <p>Cargando mensajes desde el servidor...</p>
         </div>
     </section>
+</div>
 
-    <script src="js/admin.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>

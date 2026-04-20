@@ -1,20 +1,18 @@
-// --- CARGA INICIAL ---
 document.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(localStorage.getItem("user"));
     
+    // Seguridad: Solo admin entra
     if (!user || user.role !== "admin") {
-        alert("Acceso denegado. Se requiere perfil de administrador.");
+        alert("Acceso no autorizado");
         window.location.href = "login.html";
         return;
     }
 
-    loadServices(); // Carga datos de Postgres
-    loadPQRS();     // Carga datos de Mongo
+    loadServices(); // Carga Servicios de Postgres
+    loadPQRS();     // Carga PQRS de Mongo
 });
 
-/* ==========================================
-   GESTIÓN DE SERVICIOS (POSTGRESQL)
-   ========================================== */
+// --- FUNCIONES PARA SERVICIOS (PostgreSQL) ---
 
 function loadServices() {
     fetch("/services")
@@ -22,15 +20,12 @@ function loadServices() {
         .then(data => {
             const container = document.getElementById("services");
             container.innerHTML = "";
-
-            data.forEach(service => {
+            data.forEach(s => {
                 container.innerHTML += `
-                <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 5px; display: flex; justify-content: space-between;">
-                    <div>
-                        <strong>${service.title}</strong> - $${service.price}
-                    </div>
-                    <button onclick="deleteService(${service.id})" style="background: red; color: white;">Eliminar</button>
-                </div>`;
+                    <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
+                        <span><strong>${s.title}</strong> - $${s.price}</span>
+                        <button onclick="deleteService(${s.id})" style="color:red; cursor:pointer; background:none; border:none;">[Eliminar]</button>
+                    </div>`;
             });
         });
 }
@@ -41,77 +36,59 @@ function createService() {
     const price = document.getElementById("price").value;
     const image = document.getElementById("image").value;
 
-    if (!title || !price) return alert("Completa los campos básicos");
-
     fetch("/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, price, image, role: user.role })
-    })
-    .then(res => res.json())
-    .then(() => {
-        alert("Servicio creado con éxito");
+    }).then(() => {
+        alert("Servicio Creado");
         loadServices();
-        // Limpiar campos
-        document.getElementById("title").value = "";
-        document.getElementById("price").value = "";
     });
 }
 
 function deleteService(id) {
     const user = JSON.parse(localStorage.getItem("user"));
-
-    if (!confirm("¿Eliminar este servicio?")) return;
-
+    if (!confirm("¿Eliminar?")) return;
     fetch(`/services/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: user.role })
-    })
-    .then(() => {
-        alert("Servicio eliminado");
-        loadServices();
-    });
+    }).then(() => loadServices());
 }
 
-/* ==========================================
-   GESTIÓN DE PQRS (MONGODB)
-   ========================================== */
+// --- FUNCIÓN CRÍTICA: VER PQRS (MongoDB) ---
 
 function loadPQRS() {
     const container = document.getElementById("pqrsList");
 
-    fetch("/api/pqrs")
+    fetch("/api/pqrs") // Ruta que definimos en server.js y routes/pqrs.js
         .then(res => res.json())
         .then(data => {
-            container.innerHTML = "";
+            container.innerHTML = ""; // Limpiar el "Cargando..."
 
             if (data.length === 0) {
-                container.innerHTML = "<p>No hay mensajes registrados.</p>";
+                container.innerHTML = "<p>No hay mensajes en el buzón actualmente.</p>";
                 return;
             }
 
             data.forEach(item => {
+                const fecha = new Date(item.fecha).toLocaleString();
                 container.innerHTML += `
-                <div style="border-left: 5px solid #ffb3c1; background: #fff5f7; padding: 15px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <div style="display: flex; justify-content: space-between;">
-                        <strong>${item.tipo.toUpperCase()}</strong>
-                        <small>${new Date(item.fecha).toLocaleString()}</small>
-                    </div>
-                    <p style="margin: 10px 0;">"${item.mensaje}"</p>
-                    <div style="font-size: 0.9em; color: #555;">
-                        Enviado por: <strong>${item.nombre}</strong> (${item.email})
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <span style="color: ${item.estado === 'pendiente' ? 'orange' : 'green'}; font-weight: bold;">
-                            Estado: ${item.estado}
-                        </span>
-                    </div>
-                </div>`;
+                    <div class="pqrs-card">
+                        <div class="pqrs-header">
+                            <span class="pqrs-type">${item.tipo.toUpperCase()}</span>
+                            <span class="pqrs-date">${fecha}</span>
+                        </div>
+                        <strong>De: ${item.nombre}</strong>
+                        <div class="pqrs-msg">"${item.mensaje}"</div>
+                        <div class="pqrs-footer">
+                            Email de contacto: <strong>${item.email}</strong> | Estado: <strong>${item.estado}</strong>
+                        </div>
+                    </div>`;
             });
         })
         .catch(err => {
-            console.error("Error en Mongo:", err);
-            container.innerHTML = "<p>Error al cargar el buzón de MongoDB.</p>";
+            console.error("Error cargando PQRS:", err);
+            container.innerHTML = "<p style='color:red;'>Error al conectar con MongoDB.</p>";
         });
 }
