@@ -197,36 +197,46 @@ location.reload();
 CREAR SERVICIO ADMIN
 ========================= */
 
-function createService(){
+/* =========================
+CREAR SERVICIO ADMIN
+========================= */
 
-const title = document.getElementById("title").value;
-const price = document.getElementById("price").value;
-const image = document.getElementById("image").value;
+function createService() {
+  const title = document.getElementById("title").value;
+  const price = document.getElementById("price").value;
+  const image = document.getElementById("image").value;
 
-fetch("/services",{
+  // 1. Convertimos a número para validar
+  const numericPrice = parseFloat(price);
 
-method:"POST",
+  // 2. Validación de límite
+  if (numericPrice > 999.999) {
+    alert("El precio no puede exceder los 999.999");
+    return; // Detiene la ejecución aquí
+  }
+  
+  if (isNaN(numericPrice) || numericPrice <= 0) {
+    alert("Por favor, ingresa un precio válido");
+    return;
+  }
 
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-title,
-price,
-image
-})
-
-})
-.then(res=>res.json())
-.then(data=>{
-
-alert("Servicio creado");
-
-location.reload();
-
-});
-
+  fetch("/services", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      title,
+      price: numericPrice, // Enviamos el número validado
+      image
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("Servicio creado");
+    location.reload();
+  })
+  .catch(err => console.error("Error:", err));
 }
 
 
