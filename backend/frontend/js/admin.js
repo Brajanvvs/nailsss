@@ -1,17 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(localStorage.getItem("user"));
     
+    // Verificamos que sea administrador
     if (!user || user.role !== "admin") {
-        alert("No autorizado");
+        alert("No tienes permiso para estar aquí");
         window.location.href = "login.html";
         return;
     }
 
-    loadServices(); // Carga de Postgres
-    loadPQRS();     // Carga de MongoDB
+    loadServices(); // Trae servicios de Postgres
+    loadPQRS();     // Trae mensajes de MongoDB
 });
 
-// --- SERVICIOS (PostgreSQL) ---
+// --- FUNCIONES DE SERVICIOS (PostgreSQL) ---
 function loadServices() {
     fetch("/services")
     .then(res => res.json())
@@ -20,9 +21,9 @@ function loadServices() {
         container.innerHTML = "";
         data.forEach(s => {
             container.innerHTML += `
-                <div style="border-bottom:1px solid #eee; padding:10px; display:flex; justify-content:space-between;">
+                <div class="item-service">
                     <span>${s.title} - $${s.price}</span>
-                    <button onclick="deleteService(${s.id})" style="color:red; cursor:pointer;">Eliminar</button>
+                    <button onclick="deleteService(${s.id})" style="color:red; background:none; border:none; cursor:pointer;">[Eliminar]</button>
                 </div>`;
         });
     });
@@ -39,13 +40,14 @@ function createService() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, price, image, role: user.role })
     }).then(() => {
-        alert("Servicio Creado");
+        alert("Servicio creado");
         loadServices();
     });
 }
 
 function deleteService(id) {
     const user = JSON.parse(localStorage.getItem("user"));
+    if (!confirm("¿Borrar servicio?")) return;
     fetch(`/services/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -53,36 +55,38 @@ function deleteService(id) {
     }).then(() => loadServices());
 }
 
-// --- 🔥 FUNCIÓN PARA VER LAS PQRS (MongoDB) 🔥 ---
+// --- 🔥 FUNCIÓN PARA VER LAS PQRS DE MONGO 🔥 ---
 function loadPQRS() {
     const container = document.getElementById("pqrsList");
 
-    fetch("/api/pqrs")
+    fetch("/api/pqrs") // Esta ruta consulta a MongoDB
     .then(res => res.json())
     .then(data => {
-        container.innerHTML = ""; // Limpiar el "Cargando..."
+        container.innerHTML = ""; // Quitamos el "Cargando..."
 
         if (data.length === 0) {
-            container.innerHTML = "<p>No hay PQRS registradas.</p>";
+            container.innerHTML = "<p>No hay mensajes en el buzón.</p>";
             return;
         }
 
         data.forEach(item => {
+            // Usamos los nombres de tu esquema: nombre, tipo, mensaje, fecha
             container.innerHTML += `
-                <div class="pqrs-item">
-                    <div class="pqrs-meta">
-                        <span class="pqrs-type">${item.tipo.toUpperCase()}</span>
+                <div class="pqrs-box">
+                    <div class="pqrs-header">
+                        <span class="badge">${item.tipo.toUpperCase()}</span>
                         <span>${new Date(item.fecha).toLocaleString()}</span>
                     </div>
-                    <p style="margin: 10px 0;"><strong>${item.nombre}:</strong> "${item.mensaje}"</p>
-                    <div style="font-size: 0.9em; color: #666;">
-                        Email: ${item.email} | Estado: <strong>${item.estado}</strong>
+                    <p style="margin: 10px 0;"><strong>${item.nombre}</strong> (${item.email}) dice:</p>
+                    <p><em>"${item.mensaje}"</em></p>
+                    <div style="font-size: 0.8em; color: #666; text-align: right;">
+                        Estado: <strong>${item.estado}</strong>
                     </div>
                 </div>`;
         });
     })
     .catch(err => {
-        console.error("Error cargando PQRS:", err);
+        console.error("Error cargando Mongo:", err);
         container.innerHTML = "<p style='color:red;'>Error al conectar con MongoDB.</p>";
     });
 }

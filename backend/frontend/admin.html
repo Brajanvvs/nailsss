@@ -2,41 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Administrativo - Nail Salon</title>
+    <title>Panel Admin - Nail Salon</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        body { font-family: sans-serif; background: #fdf2f4; padding: 20px; }
-        .admin-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
-        h1, h2 { color: #d63384; }
-        .section-separator { border: 0; border-top: 2px solid #ffb3c1; margin: 30px 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf2f4; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1, h2 { color: #d63384; border-bottom: 2px solid #ffb3c1; padding-bottom: 8px; }
         
-        /* Estilos para las PQRS de Mongo */
-        .pqrs-item { border-left: 5px solid #ffb3c1; background: #fff9fa; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
-        .pqrs-meta { display: flex; justify-content: space-between; font-size: 0.85em; color: #888; }
-        .pqrs-type { background: #ffb3c1; color: white; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        /* Estilos para la lista de servicios */
+        .service-list { margin-bottom: 30px; }
+        .item-service { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+
+        /* Estilos para las PQRS (MongoDB) */
+        .pqrs-box { background: #fff9fa; border-left: 5px solid #ffb3c1; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .pqrs-header { display: flex; justify-content: space-between; font-size: 0.8em; color: #888; }
+        .badge { background: #ffb3c1; color: white; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="admin-card">
+    <div class="container">
         <h1>Panel de Administración</h1>
-        <button onclick="location.href='index.html'">Ir al Inicio</button>
+        <button onclick="location.href='index.html'">Volver al Inicio</button>
 
         <section>
             <h2>Gestión de Servicios</h2>
-            <input id="title" placeholder="Nombre">
-            <input id="price" placeholder="Precio">
-            <input id="image" placeholder="Imagen URL">
-            <button onclick="createService()">Crear</button>
-            <div id="services" style="margin-top: 15px;"></div>
+            <div style="margin-bottom: 20px;">
+                <input id="title" placeholder="Nombre">
+                <input id="price" placeholder="Precio">
+                <input id="image" placeholder="Imagen URL">
+                <button onclick="createService()" style="background: #ffb3c1; color: white; border: none; padding: 8px;">Crear</button>
+            </div>
+            <div id="services" class="service-list"></div>
         </section>
 
-        <hr class="section-separator">
+        <hr>
 
         <section>
-            <h2>Buzón de PQRS (MongoDB)</h2>
+            <h2>Buzón de PQRS (Mensajes Recibidos)</h2>
             <div id="pqrsList">
-                <p>Cargando mensajes...</p>
+                <p>Cargando mensajes de los clientes...</p>
             </div>
         </section>
     </div>
