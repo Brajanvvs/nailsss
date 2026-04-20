@@ -16,7 +16,12 @@
 
 <a id="loginLink" href="login.html">Login</a>
 <a id="registerLink" href="register.html">Registro</a>
-<a id="pqrsLink" href="pqrs.html">PQRS</a>
+<a id="pqrsLink" href="pqrs.html">Enviar PQRS</a>
+
+<a id="adminPqrsLink" href="admin.html" style="display: none; color: #d63384; font-weight: bold;">
+    📥 Ver Buzón PQRS
+</a>
+
 <a id="logoutLink" style="display:none;" onclick="logout()">Cerrar sesión</a>
 
 </div>
@@ -96,6 +101,27 @@
 <script src="js/services.js"></script>
 <script src="js/appointments.js"></script>
 <!-- <script src="js/admin.js"></script> ✅ ESTE FALTABA -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const adminLink = document.getElementById("adminPqrsLink");
+    const loginLink = document.getElementById("loginLink");
+    const registerLink = document.getElementById("registerLink");
+
+    if (user) {
+        // Si hay un usuario logueado, ocultamos login y registro
+        if (loginLink) loginLink.style.display = "none";
+        if (registerLink) registerLink.style.display = "none";
+
+        // 👑 Si es ADMIN, mostramos el acceso al buzón
+        if (user.role === "admin") {
+            adminLink.style.display = "inline"; // O "block" según tu diseño
+            adminLink.innerHTML = "🛠️ Panel Admin (PQRS)";
+        }
+    }
+});
+</script>
 
 </body>
 
