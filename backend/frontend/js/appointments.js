@@ -46,7 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Lista de texto abajo
                     if (container) {
-                        
+                        container.innerHTML += `
+                            <div class="appointment" style="border:1px solid #ddd; padding:10px; margin:5px;">
+                                <strong>${app.title}</strong> - ${app.day} a las ${app.time}
+                                <button onclick="cancelarCita(${app.id})">Cancelar</button>
+                            </div>`;
                     }
                 });
             })
