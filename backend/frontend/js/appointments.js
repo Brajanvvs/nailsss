@@ -29,27 +29,24 @@ if (container) {
       }
 
       data.forEach(app => {
-        if (app.status === "active") {
-          // 💡 Convertimos todo a minúsculas y quitamos espacios
-          const diaDB = app.day.trim().toLowerCase();
-          const horaDB = app.time.trim().toLowerCase();
-          
-          // Buscamos la celda comparando también en minúsculas
-          const celdas = document.querySelectorAll('#calendar td[data-day]');
-          const celdaOcupada = Array.from(celdas).find(td => 
-            td.getAttribute('data-day').trim().toLowerCase() === diaDB && 
-            td.getAttribute('data-time').trim().toLowerCase() === horaDB
-          );
+      if (app.status === "active") {
+        // 💡 Convertimos todo a minúsculas y quitamos espacios
+        const diaDB = app.day.trim().toLowerCase();
+        const horaDB = app.time.trim().toLowerCase();
+        
+        // Buscamos la celda comparando también en minúsculas
+        const celdas = document.querySelectorAll('#calendar td[data-day]');
+        const celdaOcupada = Array.from(celdas).find(td => 
+          td.getAttribute('data-day').trim().toLowerCase() === diaDB && 
+          td.getAttribute('data-time').trim().toLowerCase() === horaDB
+        );
 
-          if (celdaOcupada) {
-            celdaOcupada.innerHTML = "❌";
-            celdaOcupada.style.backgroundColor = "#ffb3c1";
-            celdaOcupada.style.pointerEvents = "none"; 
-          }
+        if (celdaOcupada) {
+          celdaOcupada.innerHTML = "❌";
+          celdaOcupada.style.backgroundColor = "#ffb3c1";
+          celdaOcupada.style.pointerEvents = "none"; 
         }
-
-        // ... (aquí sigue tu código de container.innerHTML para la lista de abajo)
-      });
+      }
 
         // --- 📋 MOSTRAR LISTA DE CITAS ---
         container.innerHTML += `
