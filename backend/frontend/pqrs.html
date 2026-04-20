@@ -2,92 +2,163 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PQRS - Nails Bar</title>
   <style>
+    :root {
+      --rosa-principal: #ff69b4;
+      --rosa-suave: #ffc0cb;
+      --rosa-fondo: #fff0f5;
+      --rosa-hover: #ff1493;
+      --blanco: #ffffff;
+      --sombra: rgba(255, 105, 180, 0.15);
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #fff0f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--rosa-fondo);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      margin: 0;
     }
 
     .container {
-      background: white;
-      padding: 25px;
-      border-radius: 10px;
-      width: 350px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: var(--blanco);
+      padding: 40px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      border: 1px solid rgba(255, 192, 203, 0.3);
+      box-sizing: border-box;
     }
 
     h2 {
       text-align: center;
-      color: #d63384;
+      color: var(--rosa-principal);
+      margin-top: 0;
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+    }
+
+    p.subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 25px;
     }
 
     input, select, textarea {
       width: 100%;
-      padding: 8px;
-      margin: 8px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border: 2px solid #fdf2f4;
+      font-size: 15px;
+      box-sizing: border-box;
+      outline: none;
+      transition: all 0.3s ease;
+      background: #fffcfd;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--rosa-principal);
+      background: white;
+      box-shadow: 0 0 8px var(--sombra);
+    }
+
+    textarea {
+      height: 120px;
+      resize: none;
     }
 
     button {
       width: 100%;
-      padding: 10px;
-      background: #d63384;
+      padding: 14px;
+      background: var(--rosa-principal);
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 15px;
+      box-shadow: 0 5px 15px var(--sombra);
     }
 
     button:hover {
-      background: #b02a6b;
+      background: var(--rosa-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px var(--sombra);
+    }
+
+    button:active {
+      transform: translateY(0);
     }
 
     .msg {
-      margin-top: 10px;
+      margin-top: 20px;
       text-align: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-height: 20px;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      text-decoration: none;
+      color: var(--rosa-principal);
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .back-link:hover {
+      color: var(--rosa-hover);
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>Formulario PQRS</h2>
+  <h2>PQRS</h2>
+  <p class="subtitle">Peticiones, Quejas, Reclamos o Sugerencias</p>
 
   <form id="pqrsForm">
-    <input type="text" id="nombre" placeholder="Nombre" required>
-    <input type="email" id="email" placeholder="Correo" required>
+    <input type="text" id="nombre" placeholder="Tu nombre completo" required>
+    <input type="email" id="email" placeholder="Tu correo electrónico" required>
 
     <select id="tipo" required>
-      <option value="">Seleccione tipo</option>
+      <option value="" disabled selected>Seleccione motivo</option>
       <option value="peticion">Petición</option>
       <option value="queja">Queja</option>
       <option value="reclamo">Reclamo</option>
       <option value="sugerencia">Sugerencia</option>
     </select>
 
-    <textarea id="mensaje" placeholder="Escribe tu mensaje..." required></textarea>
+    <textarea id="mensaje" placeholder="Describe aquí tu mensaje detalladamente..." required></textarea>
 
-    <button type="submit">Enviar</button>
+    <button type="submit">Enviar Mensaje</button>
   </form>
 
   <div class="msg" id="respuesta"></div>
+  
+  <a href="index.html" class="back-link">← Volver al inicio</a>
 </div>
 
 <script>
   const form = document.getElementById("pqrsForm");
   const respuesta = document.getElementById("respuesta");
-
-  // 🔥 CAMBIO IMPORTANTE (dinámico)
   const API_URL = window.location.origin;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    respuesta.innerHTML = "Enviando...";
+    respuesta.style.color = "#888";
 
     const data = {
       nombre: document.getElementById("nombre").value,
@@ -99,22 +170,19 @@
     try {
       const res = await fetch(`${API_URL}/api/pqrs`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
 
       if (!res.ok) throw new Error("Error al enviar");
 
-      respuesta.innerHTML = "✅ PQRS enviada correctamente";
-      respuesta.style.color = "green";
-
+      respuesta.innerHTML = "✅ ¡Enviado! Gracias por contactarnos.";
+      respuesta.style.color = "#27ae60";
       form.reset();
 
     } catch (error) {
-      respuesta.innerHTML = "❌ Error al enviar PQRS";
-      respuesta.style.color = "red";
+      respuesta.innerHTML = "❌ Error al enviar. Intenta más tarde.";
+      respuesta.style.color = "#e74c3c";
     }
   });
 </script>
