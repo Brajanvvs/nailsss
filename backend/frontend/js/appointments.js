@@ -1,98 +1,77 @@
 const container = document.getElementById("appointments");
 
-// Función principal para cargar citas y marcar el calendario
 function cargarCitas() {
     const user = JSON.parse(localStorage.getItem("user"));
-
-    // 🔐 validar sesión
-    if (!user) {
-        alert("Debe iniciar sesión");
-        window.location.href = "login.html";
-        return;
-    }
+    if (!user || !container) return; // Si no hay usuario o contenedor, no hace nada
 
     let url = (user.role === "admin") ? "/appointments" : `/appointments/user/${user.id}`;
 
-    // 📥 cargar citas
     fetch(url)
         .then(res => res.json())
         .then(data => {
-            container.innerHTML = "";
+            container.innerHTML = ""; // Limpiar lista de citas
 
-            if (!data || data.length === 0) {
-                container.innerHTML = "<p>No tienes citas</p>";
-                return;
-            }
-
-            // 1. Limpiar el calendario antes de marcar (opcional pero recomendado)
+            // 1. Limpiar visualmente el calendario
             document.querySelectorAll('#calendar td[data-day]').forEach(td => {
                 td.innerHTML = "";
                 td.style.backgroundColor = "";
                 td.style.pointerEvents = "auto";
             });
 
-            data.forEach(app => {
-                // --- ❌ LÓGICA PARA MARCAR EL CALENDARIO ---
-                if (app.status === "active") {
-                    // Normalización extrema: quitamos espacios, minúsculas y el "0" inicial de la hora
-                    const diaDB = app.day.trim().toLowerCase();
-                    const horaDB = app.time.trim().toLowerCase().replace(/^0/, '');
+            if (data.length === 0) {
+                container.innerHTML = "<p>No tienes citas agendadas</p>";
+                return;
+            }
 
-                    const todasLasCeldas = document.querySelectorAll('#calendar td[data-day]');
-                    
-                    todasLasCeldas.forEach(celda => {
-                        const diaHTML = (celda.getAttribute('data-day') || "").trim().toLowerCase();
-                        const horaHTML = (celda.getAttribute('data-time') || "").trim().toLowerCase().replace(/^0/, '');
+            data.forEach(app => {
+                if (app.status === "active") {
+                    // Normalización para marcar el calendario
+                    const diaDB = app.day.trim().toLowerCase();
+                    const horaDB = app.time.trim().toLowerCase();
+
+                    const celdas = document.querySelectorAll('#calendar td[data-day]');
+                    celdas.forEach(celda => {
+                        const diaHTML = celda.getAttribute('data-day').trim().toLowerCase();
+                        const horaHTML = celda.getAttribute('data-time').trim().toLowerCase();
 
                         if (diaHTML === diaDB && horaHTML === horaDB) {
                             celda.innerHTML = "❌";
                             celda.style.backgroundColor = "#ffb3c1";
-                            celda.style.pointerEvents = "none"; // Bloquea el clic para evitar error 400
-                            console.log(`Marcada celda ocupada: ${diaDB} ${horaDB}`);
+                            celda.style.pointerEvents = "none";
                         }
                     });
-                }
 
-                // --- 📋 MOSTRAR LISTA DE CITAS ABAJO ---
-                container.innerHTML += `
-                    <div class="appointment">
-                        <h3>${app.title || "Servicio"}</h3>
-                        <p>${app.day} - ${app.time}</p>
-                        <p>Usuario: ${app.name || "N/A"}</p>
-                        ${app.status === "active"
-                            ? `<button onclick="cancel(${app.id})">Cancelar</button>`
-                            : `<p style="color:red;">Cancelada</p>`
-                        }
-                    </div>
-                `;
+                    // 2. Mostrar la lista debajo
+                    container.innerHTML += `
+                        <div class="appointment" style="border:1px solid #ccc; margin:10px; padding:10px;">
+                            <h3>${app.title || "Servicio"}</h3>
+                            <p>${app.day} - ${app.time}</p>
+                            <p>Usuario: ${app.name || "N/A"}</p>
+                            <button onclick="cancel(${app.id})">Cancelar</button>
+                        </div>
+                    `;
+                }
             });
         })
-        .catch(err => {
-            console.error("Error cargando citas:", err);
-            container.innerHTML = "<p>Error cargando citas</p>";
-        });
+        .catch(err => console.error("Error cargando citas:", err));
 }
 
-// --- 🖱️ EVENTO PARA AGENDAR HACIENDO CLICK EN EL CALENDARIO ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Ejecutar la carga inicial de citas
     cargarCitas();
 
     const celdas = document.querySelectorAll('#calendar td[data-day]');
-    const user = JSON.parse(localStorage.getItem("user"));
-
     celdas.forEach(celda => {
         celda.addEventListener('click', () => {
             const day = celda.getAttribute('data-day');
             const time = celda.getAttribute('data-time');
             const selectedService = document.getElementById("selectedServiceText").innerText;
+            const user = JSON.parse(localStorage.getItem("user"));
 
             if (!selectedService || selectedService.trim() === "") {
-                alert("Por favor, selecciona primero un servicio.");
+                alert("Selecciona un servicio primero");
                 return;
             }
 
-            // ENVIAR POST
             fetch("/appointments", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -101,46 +80,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     day: day,
                     time: time,
                     userId: user.id,
-                    name: user.name || "Cliente",
+                    name: user.name,
                     status: "active"
                 })
             })
             .then(res => {
                 if (res.ok) {
-                    alert("✅ ¡Cita agendada!");
+                    alert("¡Cita agendada!");
                     location.reload();
                 } else {
-                    // Si el servidor responde 400, informamos al usuario
-                    alert("❌ Error: Este horario ya está ocupado o los datos son inválidos.");
+                    alert("Error: Este horario ya está ocupado");
                 }
-            })
-            .catch(err => {
-                console.error("Error al agendar:", err);
-                alert("Ocurrió un error al conectar con el servidor.");
             });
         });
     });
 });
 
-/* =========================
-   CANCELAR CITA
-   ========================= */
-function cancel(id) {
-    if (!confirm("¿Seguro que desea cancelar la cita?")) return;
-
-    fetch(`/appointments/${id}`, {
-        method: "DELETE"
-    })
-    .then(res => {
-        if (res.ok) {
-            alert("✅ Cita cancelada");
-            location.reload(); // Recarga simple para actualizar todo
-        } else {
-            alert("No se pudo cancelar la cita");
-        }
-    })
-    .catch(err => {
-        console.error("Error cancelando cita:", err);
-        alert("Error al procesar la cancelación");
-    });
-}
+window.cancel = function(id) {
+    if (!confirm("¿Deseas cancelar?")) return;
+    fetch(`/appointments/${id}`, { method: "DELETE" })
+        .then(() => location.reload());
+};
