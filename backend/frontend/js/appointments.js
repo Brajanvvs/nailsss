@@ -21,121 +21,105 @@ if (container) {
 
 
 /* ==========================================
-   GESTIÓN DE CITAS (CARGAR Y CREAR)
+   GESTIÓN DE CITAS COMPLETA
    ========================================== */
 
-function initAppointments() {
-    const url = "https://nailsss-production.up.railway.app/appointments";
-    const container = document.getElementById("services");
+function cargarCitas() {
+  const url = "https://nailsss-production.up.railway.app/appointments";
+  const container = document.getElementById("services");
 
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            container.innerHTML = "";
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      container.innerHTML = "";
 
-            if (data.length === 0) {
-                container.innerHTML = "<p>No tienes citas agendadas</p>";
+      if (data.length === 0) {
+        container.innerHTML = "<p>No tienes citas</p>";
+        return;
+      }
+
+      data.forEach(app => {
+        // --- 1. MARCAR EL CALENDARIO (La parte que faltaba) ---
+        // Usamos trim() para que "Lunes " sea igual a "Lunes"
+        if (app.status === "active") {
+          const dia = app.day.trim();
+          const hora = app.time.trim();
+          
+          // Buscamos la celda exacta
+          const celdaOcupada = document.querySelector(`td[data-day="${dia}"][data-time="${hora}"]`);
+          
+          if (celdaOcupada) {
+            celdaOcupada.innerHTML = "❌";
+            celdaOcupada.style.backgroundColor = "#ffb3c1";
+            celdaOcupada.style.pointerEvents = "none"; // Bloquea el clic
+          }
+        }
+
+        // --- 2. MOSTRAR LA LISTA (Tu código original restaurado) ---
+        container.innerHTML += `
+          <div class="appointment">
+            <h3>${app.title || "Servicio"}</h3>
+            <p>${app.day} - ${app.time}</p>
+            <p>Usuario: ${app.name || "N/A"}</p>
+
+            ${
+              app.status === "active"
+                ? `<button onclick="cancel(${app.id})">Cancelar</button>`
+                : `<p style="color:red;">Cancelada</p>`
             }
-
-            data.forEach(app => {
-                // 1. Limpiamos espacios y normalizamos el texto para la búsqueda
-                // Esto asegura que "Lunes" coincida con "Lunes" aunque venga con espacios
-                const dayFixed = app.day.trim();
-                const timeFixed = app.time.trim();
-
-                // 2. Buscamos la celda usando un selector más flexible
-                const busyCell = document.querySelector(`td[data-day="${dayFixed}"][data-time="${timeFixed}"]`);
-
-                if (busyCell && app.status === "active") {
-                    console.log(`Marcando ocupado: ${dayFixed} - ${timeFixed}`); // Para debug en consola
-                    busyCell.innerHTML = "❌"; 
-                    busyCell.style.backgroundColor = "#ffb3c1";
-                    busyCell.style.textAlign = "center";
-                    busyCell.style.fontWeight = "bold";
-                    busyCell.style.pointerEvents = "none"; 
-                }
-
-                // Dibujar lista abajo
-                container.innerHTML += `
-                    <div class="appointment">
-                        <h3>${app.title || "Servicio"}</h3>
-                        <p>${app.day} - ${app.time}</p>
-                        <p>Usuario: ${app.name || "N/A"}</p>
-                        ${app.status === "active" 
-                            ? `<button onclick="cancel(${app.id})">Cancelar</button>` 
-                            : `<p style="color:red;">Cancelada</p>`}
-                    </div>
-                `;
-            });
-        })
-        .catch(err => console.error("Error:", err));
-}
-
-// 2. ESCUCHAR CLICS PARA CREAR CITAS
-document.addEventListener('DOMContentLoaded', () => {
-    // Inicializamos la carga de datos
-    initAppointments();
-
-    const tableCells = document.querySelectorAll('#calendar td[data-day]');
-
-    tableCells.forEach(cell => {
-        cell.addEventListener('click', () => {
-            const day = cell.getAttribute('data-day');
-            const time = cell.getAttribute('data-time');
-            
-            // Validar que haya un servicio seleccionado
-            const selectedService = document.getElementById("selectedServiceText").innerText;
-
-            if (!selectedService || selectedService.trim() === "") {
-                alert("⚠️ Por favor, selecciona primero un servicio arriba.");
-                return;
-            }
-
-            // Confirmación antes de enviar
-            if(!confirm(`¿Agendar ${selectedService} para el ${day} a las ${time}?`)) return;
-
-            // ENVIAR POST AL SERVIDOR
-            fetch("https://nailsss-production.up.railway.app/appointments", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    title: selectedService,
-                    day: day,
-                    time: time,
-                    name: "Cliente Prueba", // Cambiar por el nombre real si tienes login
-                    status: "active"
-                })
-            })
-            .then(async res => {
-                const responseData = await res.json();
-                
-                if (res.ok) {
-                    alert("✅ ¡Cita agendada con éxito!");
-                    location.reload(); 
-                } else {
-                    // Aquí manejamos el error 400 detallado
-                    throw new Error(responseData.message || "Error al agendar: Horario no disponible");
-                }
-            })
-            .catch(err => {
-                alert("❌ " + err.message);
-                console.error("Error en la petición:", err);
-            });
-        });
+          </div>
+        `;
+      });
+    })
+    .catch(err => {
+      console.error("Error cargando citas:", err);
+      container.innerHTML = "<p>Error cargando citas</p>";
     });
-});
-
-/* Función para cancelar (debes tenerla definida) */
-function cancel(id) {
-    if(confirm("¿Seguro que quieres cancelar esta cita?")) {
-        fetch(`https://nailsss-production.up.railway.app/appointments/${id}`, {
-            method: "DELETE" // O PATCH según tu API
-        }).then(() => location.reload());
-    }
 }
 
+/* ==========================================
+   EVENTO PARA CREAR CITA AL HACER CLIC
+   ========================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  // Ejecutar la carga inicial
+  cargarCitas();
+
+  const celdas = document.querySelectorAll('#calendar td[data-day]');
+
+  celdas.forEach(celda => {
+    celda.addEventListener('click', () => {
+      const day = celda.getAttribute('data-day');
+      const time = celda.getAttribute('data-time');
+      const selectedService = document.getElementById("selectedServiceText").innerText;
+
+      if (!selectedService || selectedService.trim() === "") {
+        alert("Selecciona un servicio primero");
+        return;
+      }
+
+      fetch("https://nailsss-production.up.railway.app/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: selectedService,
+          day: day,
+          time: time,
+          name: "Cliente Prueba",
+          status: "active"
+        })
+      })
+      .then(res => {
+        if (res.ok) {
+          alert("Servicio agendado");
+          location.reload();
+        } else {
+          alert("Este horario ya no está disponible");
+        }
+      })
+      .catch(err => console.error("Error:", err));
+    });
+  });
+});
 
 
 
