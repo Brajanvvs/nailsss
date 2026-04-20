@@ -1,7 +1,6 @@
-const container = document.getElementById("appointments");
+const container = document.getElementById("appointments"); // ID original restaurado
 
 if (container) {
-
   const user = JSON.parse(localStorage.getItem("user"));
 
   // 🔐 validar sesión
@@ -11,7 +10,6 @@ if (container) {
   }
 
   let url = "";
-
   // 👑 admin ve todo
   if (user.role === "admin") {
     url = "/appointments";
@@ -19,36 +17,22 @@ if (container) {
     url = `/appointments/user/${user.id}`;
   }
 
-
-/* ==========================================
-   FUNCIÓN PRINCIPAL DE CITAS
-   ========================================== */
-
-function cargarCitas() {
-  const url = "https://nailsss-production.up.railway.app/appointments";
-  const container = document.getElementById("services");
-
+  // 📥 cargar citas
   fetch(url)
     .then(res => res.json())
     .then(data => {
-      console.log("Datos recibidos:", data); // Esto te dirá en consola qué llega
       container.innerHTML = "";
 
-      if (!data || data.length === 0) {
+      if (data.length === 0) {
         container.innerHTML = "<p>No tienes citas</p>";
         return;
       }
 
       data.forEach(app => {
-        // --- 1. MARCAR EL CALENDARIO ---
+        // --- ❌ LÓGICA PARA MARCAR EL CALENDARIO ---
         if (app.status === "active") {
-          // Normalizamos: quitamos espacios y pasamos a minúsculas para comparar
-          const diaDB = app.day.trim();
-          const horaDB = app.time.trim();
-          
-          // Buscamos la celda (aquí el selector debe ser exacto a tu HTML)
-          const celda = document.querySelector(`td[data-day="${diaDB}"][data-time="${horaDB}"]`);
-          
+          // Buscamos la celda que coincida exactamente con el texto de la DB
+          const celda = document.querySelector(`td[data-day="${app.day}"][data-time="${app.time}"]`);
           if (celda) {
             celda.innerHTML = "❌";
             celda.style.backgroundColor = "#ffb3c1";
@@ -56,40 +40,32 @@ function cargarCitas() {
           }
         }
 
-        // --- 2. MOSTRAR LISTA ABAJO ---
+        // --- 📋 MOSTRAR LISTA DE CITAS ---
         container.innerHTML += `
-          <div class="appointment" style="border: 1px solid #ccc; margin: 5px; padding: 10px;">
+          <div class="appointment">
             <h3>${app.title || "Servicio"}</h3>
             <p>${app.day} - ${app.time}</p>
             <p>Usuario: ${app.name || "N/A"}</p>
-            ${app.status === "active" 
-                ? `<button onclick="cancelarCita(${app.id})">Cancelar</button>` 
-                : `<p style="color:red;">Cancelada</p>`}
+            ${
+              app.status === "active"
+                ? `<button onclick="cancel(${app.id})">Cancelar</button>`
+                : `<p style="color:red;">Cancelada</p>`
+            }
           </div>
         `;
       });
     })
     .catch(err => {
-      console.error("Error en fetch:", err);
-      container.innerHTML = "<p>Error al cargar los datos del servidor.</p>";
+      console.error("Error cargando citas:", err);
+      container.innerHTML = "<p>Error cargando citas</p>";
     });
 }
 
-// Función global para que el botón 'onclick' funcione
-window.cancelarCita = function(id) {
-    if(confirm("¿Cancelar cita?")) {
-        fetch(`https://nailsss-production.up.railway.app/appointments/${id}`, { method: "DELETE" })
-        .then(() => location.reload());
-    }
-}
-
-/* ==========================================
-   EVENTO DE CLICK Y ARRANQUE
-   ========================================== */
+// --- 🖱️ EVENTO PARA AGENDAR HACIENDO CLICK EN EL CALENDARIO ---
 document.addEventListener('DOMContentLoaded', () => {
-  cargarCitas();
-
   const celdas = document.querySelectorAll('#calendar td[data-day]');
+  const user = JSON.parse(localStorage.getItem("user"));
+
   celdas.forEach(celda => {
     celda.addEventListener('click', () => {
       const day = celda.getAttribute('data-day');
@@ -97,36 +73,35 @@ document.addEventListener('DOMContentLoaded', () => {
       const selectedService = document.getElementById("selectedServiceText").innerText;
 
       if (!selectedService || selectedService.trim() === "") {
-        alert("Selecciona un servicio primero");
+        alert("Por favor, selecciona primero un servicio.");
         return;
       }
 
-      fetch("https://nailsss-production.up.railway.app/appointments", {
+      // IMPORTANTE: Enviamos los datos como el servidor los espera
+      fetch("/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: selectedService,
           day: day,
           time: time,
-          name: "Cliente Prueba",
+          userId: user.id, // Pasamos el ID del usuario actual
+          name: user.name || "Cliente",
           status: "active"
         })
       })
       .then(res => {
         if (res.ok) {
-          alert("Agendado con éxito");
+          alert("¡Cita agendada!");
           location.reload();
         } else {
-          alert("Error: Verifica si el horario ya está ocupado");
+          // Si sale 400 aquí, es porque el servidor dice que ya está ocupado
+          alert("Error: Este horario no está disponible o los datos son incorrectos.");
         }
       });
     });
   });
 });
-
-  
-
-}
 
 
 
