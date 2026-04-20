@@ -2,56 +2,45 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Nail Salon</title>
+    <title>Panel Administrativo - Nail Salon</title>
+    <link rel="stylesheet" href="css/styles.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #fdf2f4; padding: 20px; color: #333; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        h1, h2 { color: #d63384; border-bottom: 2px solid #ffb3c1; padding-bottom: 10px; }
+        body { font-family: sans-serif; background: #fdf2f4; padding: 20px; }
+        .admin-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
+        h1, h2 { color: #d63384; }
+        .section-separator { border: 0; border-top: 2px solid #ffb3c1; margin: 30px 0; }
         
-        /* Sección Servicios */
-        .form-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; flex: 1; min-width: 200px; }
-        .btn-add { background-color: #ffb3c1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        /* Sección PQRS */
-        #pqrsList { display: grid; gap: 15px; margin-top: 20px; }
-        .pqrs-card { background: #fff9fa; border-left: 6px solid #ffb3c1; padding: 20px; border-radius: 10px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .pqrs-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .pqrs-type { background: #ffb3c1; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        .pqrs-date { font-size: 0.8rem; color: #888; }
-        .pqrs-msg { font-style: italic; background: white; padding: 10px; border-radius: 5px; margin: 10px 0; border: 1px solid #eee; }
-        .pqrs-footer { font-size: 0.9rem; color: #555; border-top: 1px solid #eee; pt: 10px; margin-top: 10px; }
+        /* Estilos para las PQRS de Mongo */
+        .pqrs-item { border-left: 5px solid #ffb3c1; background: #fff9fa; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .pqrs-meta { display: flex; justify-content: space-between; font-size: 0.85em; color: #888; }
+        .pqrs-type { background: #ffb3c1; color: white; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Panel de Administración</h1>
-    <p>Bienvenido al centro de gestión.</p>
+    <div class="admin-card">
+        <h1>Panel de Administración</h1>
+        <button onclick="location.href='index.html'">Ir al Inicio</button>
 
-    <section>
-        <h2>Gestión de Servicios</h2>
-        <div class="form-group">
-            <input id="title" placeholder="Nombre del servicio">
+        <section>
+            <h2>Gestión de Servicios</h2>
+            <input id="title" placeholder="Nombre">
             <input id="price" placeholder="Precio">
-            <input id="image" placeholder="URL de la imagen">
-            <button class="btn-add" onclick="createService()">Añadir Servicio</button>
-        </div>
-        <div id="services">
+            <input id="image" placeholder="Imagen URL">
+            <button onclick="createService()">Crear</button>
+            <div id="services" style="margin-top: 15px;"></div>
+        </section>
+
+        <hr class="section-separator">
+
+        <section>
+            <h2>Buzón de PQRS (MongoDB)</h2>
+            <div id="pqrsList">
+                <p>Cargando mensajes...</p>
             </div>
-    </section>
+        </section>
+    </div>
 
-    <br><br>
-
-    <section id="admin-pqrs-section">
-        <h2>Buzón de PQRS y Mensajes</h2>
-        <div id="pqrsList">
-            <p>Cargando mensajes desde el servidor...</p>
-        </div>
-    </section>
-</div>
-
-<script src="js/admin.js"></script>
+    <script src="js/admin.js"></script>
 </body>
 </html>
