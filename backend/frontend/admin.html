@@ -1,28 +1,37 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
-<title>Admin</title>
-</head>
-
+    <meta charset="UTF-8">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="css/style.css"> </head>
 <body>
 
-<h1>Panel Admin</h1>
+    <h1>Panel Administrativo</h1>
+    <button onclick="location.href='index.html'">Volver al Inicio</button>
+    <hr>
 
-<h2>Crear servicio</h2>
+    <section>
+        <h2>Gestionar Servicios</h2>
+        <div style="background: #f4f4f4; padding: 15px; border-radius: 8px;">
+            <input id="title" placeholder="Título del servicio">
+            <input id="price" placeholder="Precio">
+            <input id="image" placeholder="URL de la imagen">
+            <button onclick="createService()">Crear Servicio</button>
+        </div>
+        
+        <div id="services" style="margin-top: 20px;">
+            </div>
+    </section>
 
-<input id="title" placeholder="Titulo">
-<input id="price" placeholder="Precio">
-<input id="image" placeholder="Imagen">
+    <hr>
 
-<button onclick="createService()">Crear</button>
+    <section>
+        <h2>Buzón de PQRS</h2>
+        <div id="pqrsList" style="display: flex; flex-direction: column; gap: 10px;">
+            <p>Cargando mensajes...</p>
+        </div>
+    </section>
 
-<h2>Servicios</h2>
-
-<div id="services"></div>
-
-<script src="js/admin.js"></script>
-
+    <script src="js/admin.js"></script>
 </body>
-
 </html>
