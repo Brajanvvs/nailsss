@@ -29,16 +29,27 @@ if (container) {
       }
 
       data.forEach(app => {
-        // --- ❌ LÓGICA PARA MARCAR EL CALENDARIO ---
         if (app.status === "active") {
-          // Buscamos la celda que coincida exactamente con el texto de la DB
-          const celda = document.querySelector(`td[data-day="${app.day}"][data-time="${app.time}"]`);
-          if (celda) {
-            celda.innerHTML = "❌";
-            celda.style.backgroundColor = "#ffb3c1";
-            celda.style.pointerEvents = "none";
+          // 💡 Convertimos todo a minúsculas y quitamos espacios
+          const diaDB = app.day.trim().toLowerCase();
+          const horaDB = app.time.trim().toLowerCase();
+          
+          // Buscamos la celda comparando también en minúsculas
+          const celdas = document.querySelectorAll('#calendar td[data-day]');
+          const celdaOcupada = Array.from(celdas).find(td => 
+            td.getAttribute('data-day').trim().toLowerCase() === diaDB && 
+            td.getAttribute('data-time').trim().toLowerCase() === horaDB
+          );
+
+          if (celdaOcupada) {
+            celdaOcupada.innerHTML = "❌";
+            celdaOcupada.style.backgroundColor = "#ffb3c1";
+            celdaOcupada.style.pointerEvents = "none"; 
           }
         }
+
+        // ... (aquí sigue tu código de container.innerHTML para la lista de abajo)
+      });
 
         // --- 📋 MOSTRAR LISTA DE CITAS ---
         container.innerHTML += `
