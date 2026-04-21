@@ -210,7 +210,7 @@ function createService() {
   const numericPrice = parseFloat(price);
 
   // 2. Validación de límite
-  if (numericPrice > 999999 || numericPrice > 999.999) {
+  if (numericPrice > 999999) {
     alert("El precio no puede exceder los 999999");
     return; // Detiene la ejecución aquí
   }
