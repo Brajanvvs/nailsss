@@ -5,35 +5,36 @@ const crypto = require("crypto");
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const nodemailer = require("nodemailer");
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 async function sendEmail(to, subject, html) {
-    const SMTP_HOST = process.env.SMTP_HOST;
-    const SMTP_USER = process.env.SMTP_USER;
-    const SMTP_PASS = process.env.SMTP_PASS;
-    const SMTP_PORT = parseInt(process.env.SMTP_PORT) || 25;
+    if (!process.env.BREVO_API_KEY) {
+        throw new Error("BREVO_API_KEY no configurada");
+    }
 
-    console.log("📧 SMTP config:", { host: SMTP_HOST, port: SMTP_PORT, user: SMTP_USER });
+    console.log("📧 Enviando email con Brevo a:", to);
 
-    const transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: SMTP_PORT,
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
-        secure: true
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "api-key": process.env.BREVO_API_KEY
+        },
+        body: JSON.stringify({
+            sender: { name: "Nail Salon", email: "reset@yibrath.com" },
+            to: [{ email: to }],
+            subject: subject,
+            htmlContent: html
+        })
     });
 
-    try {
-        const info = await transporter.sendMail({
-            from: `Nail Salon <test@${SMTP_HOST}>`,
-            to: to,
-            subject: subject,
-            html: html
-        });
-        console.log("✅ Email enviado:", info.messageId);
-    } catch (e) {
-        console.error("❌ Error SMTP:", e.message);
-        throw e;
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error("Brevo error: " + err);
     }
+
+    console.log("✅ Email enviado");
+    return { id: "sent" };
 }
 
 /* =========================
@@ -228,7 +229,7 @@ router.post("/request-reset", async (req, res) => {
 
         const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
-        if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+        if (process.env.BREVO_API_KEY) {
             try {
                 console.log("📧 Enviando email a:", email);
                 
