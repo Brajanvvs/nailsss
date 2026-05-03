@@ -3,40 +3,35 @@ const pool = require("../db");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const nodemailer = require("nodemailer");
 
 async function sendEmail(to, subject, html) {
-    const apiKey = process.env.BREVO_API_KEY;
-    console.log("📧 API Key existe:", !!apiKey, apiKey ? apiKey.substring(0, 10) + "..." : "");
+    const SMTP_HOST = process.env.SMTP_HOST || "smtp-relay.brevo.com";
+    const SMTP_PORT = parseInt(process.env.SMTP_PORT) || 587;
+    const SMTP_USER = process.env.SMTP_USER || "aa05e4001@smtp-brevo.com";
+    const SMTP_PASS = process.env.SMTP_PASS;
 
-    if (!apiKey) {
-        throw new Error("BREVO_API_KEY no configurada");
+    console.log("📧 Config SMTP:", { host: SMTP_HOST, port: SMTP_PORT, user: SMTP_USER });
+
+    if (!SMTP_PASS) {
+        throw new Error("SMTP_PASS no configurada");
     }
 
-    console.log("📧 Enviando email con Brevo a:", to);
-
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "api-key": apiKey
-        },
-        body: JSON.stringify({
-            sender: { name: "Nail Salon", email: "reset@yibrath.com" },
-            to: [{ email: to }],
-            subject: subject,
-            htmlContent: html
-        })
+    const transporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        auth: { user: SMTP_USER, pass: SMTP_PASS }
     });
 
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error("Brevo error: " + err);
-    }
+    const info = await transporter.sendMail({
+        from: `Nail Salon <${SMTP_USER}>`,
+        to: to,
+        subject: subject,
+        html: html
+    });
 
-    console.log("✅ Email enviado");
-    return { id: "sent" };
+    console.log("✅ Email enviado:", info.messageId);
+    return { id: info.messageId };
 }
 
 /* =========================
@@ -231,7 +226,7 @@ router.post("/request-reset", async (req, res) => {
 
         const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
-        if (process.env.BREVO_API_KEY) {
+        if (process.env.SMTP_PASS) {
             try {
                 console.log("📧 Enviando email a:", email);
                 
