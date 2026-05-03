@@ -1,28 +1,65 @@
 const router = require("express").Router();
 const pool = require("../db");
+const bcrypt = require("bcrypt");
 
 /* =========================
-REGISTRAR CLIENTE
+REGISTRAR CLIENTE CON LOGIN
 ========================= */
 
 router.post("/", async (req, res) => {
+    const client = await pool.connect();
+    
     try {
-        const { name, document_type, document_number, email, phone, address, rut_pdf } = req.body;
+        await client.query("BEGIN");
+        
+        const { name, document_type, document_number, email, phone, address, rut_pdf, password } = req.body;
 
         if (!name || !document_number) {
             return res.status(400).json({ error: "Nombre y número de documento son obligatorios" });
         }
 
-        console.log("📄 RUT recibido:", rut_pdf ? rut_pdf.substring(0, 50) + "..." : "sin archivo");
+        let newClient;
         
-        const newClient = await pool.query(
-            `INSERT INTO clients(name, document_type, document_number, email, phone, address, rut_pdf)
-             VALUES($1, $2, $3, $4, $5, $6, $7)
-             RETURNING *`,
-            [name, document_type || "CC", document_number, email, phone, address, rut_pdf || null]
-        );
-
-        res.json({ message: "Cliente registrado exitosamente", client: newClient.rows[0] });
+        // Si hay contraseña, crear usuario y cliente
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            
+            // Crear usuario
+            const newUser = await client.query(
+                `INSERT INTO users(name, email, password, role)
+                 VALUES($1, $2, $3, 'user')
+                 RETURNING id`,
+                [name, email, hashedPassword]
+            );
+            
+            // Crear cliente vinculado al usuario
+            newClient = await client.query(
+                `INSERT INTO clients(name, document_type, document_number, email, phone, address, rut_pdf, user_id)
+                 VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+                 RETURNING *`,
+                [name, document_type || "CC", document_number, email, phone, address, rut_pdf || null, newUser.rows[0].id]
+            );
+            
+            await client.query("COMMIT");
+            
+            res.json({ 
+                message: "Cliente registrado con acceso a tienda", 
+                client: newClient.rows[0],
+                loginEnabled: true 
+            });
+        } else {
+            // Solo crear cliente sin login
+            newClient = await client.query(
+                `INSERT INTO clients(name, document_type, document_number, email, phone, address, rut_pdf)
+                 VALUES($1, $2, $3, $4, $5, $6, $7)
+                 RETURNING *`,
+                [name, document_type || "CC", document_number, email, phone, address, rut_pdf || null]
+            );
+            
+            await client.query("COMMIT");
+            
+            res.json({ message: "Cliente registrado exitosamente", client: newClient.rows[0] });
+        }
 
     } catch (err) {
         if (err.code === "23505") {

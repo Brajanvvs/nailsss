@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS clients (
     address TEXT,
     rut_pdf TEXT,
     balance NUMERIC DEFAULT 0,
+    user_id INTEGER REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -193,14 +193,14 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Contraseña incorrecta" });
         }
         
-        // Buscar o crear cliente linked
+        // Buscar cliente por user_id
         const client = await pool.query(
-            "SELECT id, name, document_number, phone, email, balance FROM clients WHERE email = $1",
-            [email]
+            "SELECT id, name, document_number, phone, email, balance FROM clients WHERE user_id = $1",
+            [user.rows[0].id]
         );
         
         if (client.rows.length === 0) {
-            return res.status(404).json({ error: "No tienes registro como cliente. Regístrate primero." });
+            return res.status(404).json({ error: "Tu cuenta de usuario no está vinculada a un cliente. Contacta al administrador." });
         }
         
         res.json({ 
