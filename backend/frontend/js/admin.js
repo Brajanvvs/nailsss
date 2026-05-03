@@ -10,8 +10,142 @@ document.addEventListener("DOMContentLoaded", () => {
     loadUsers();
     loadServices();
     loadClients();
+    loadProducts();
     loadPQRS();
 });
+
+// --- LÓGICA DE PRODUCTOS (INVENTARIO) ---
+function loadProducts() {
+    fetch("/products")
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("productsList");
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='color: #666;'>No hay productos en inventario</p>";
+                return;
+            }
+            
+            container.innerHTML = `
+                <table style="width:100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background:#ffb3c1; color:white;">
+                            <th style="padding:10px; text-align:left;">Producto</th>
+                            <th style="padding:10px; text-align:left;">Categoría</th>
+                            <th style="padding:10px; text-align:left;">Stock</th>
+                            <th style="padding:10px; text-align:left;">Precio</th>
+                            <th style="padding:10px; text-align:left;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(p => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">
+                                    <strong>${p.name}</strong><br>
+                                    <small style="color:#666;">${p.description || ""}</small>
+                                </td>
+                                <td style="padding:10px;">${p.category || "-"}</td>
+                                <td style="padding:10px;">
+                                    <span style="color: ${p.stock <= 5 ? '#e74c3c' : '#27ae60'}; font-weight:bold;">
+                                        ${p.stock} ${p.unit}
+                                    </span>
+                                </td>
+                                <td style="padding:10px;">$${parseFloat(p.price).toLocaleString()}</td>
+                                <td style="padding:10px;">
+                                    <button onclick="updateStock(${p.id}, ${p.stock}, 'add')" style="background:#27ae60; color:white; border:none; padding:5px 8px; border-radius:3px; cursor:pointer;">+</button>
+                                    <button onclick="updateStock(${p.id}, ${p.stock}, 'subtract')" style="background:#e74c3c; color:white; border:none; padding:5px 8px; border-radius:3px; cursor:pointer;">-</button>
+                                    <button onclick="editProduct(${p.id}, '${p.name}', '${p.category || ''}', ${p.stock}, ${p.price}, '${p.unit}', '${p.description || ''}')" style="background:#3498db; color:white; border:none; padding:5px 8px; border-radius:3px; cursor:pointer;">✏️</button>
+                                    <button onclick="deleteProduct(${p.id})" style="background:#e74c3c; color:white; border:none; padding:5px 8px; border-radius:3px; cursor:pointer;">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("productsList").innerHTML = "<p style='color:red'>Error cargando inventario</p>";
+        });
+}
+
+function createProduct() {
+    const data = {
+        name: document.getElementById("prodName").value,
+        category: document.getElementById("prodCategory").value,
+        unit: document.getElementById("prodUnit").value,
+        price: document.getElementById("prodPrice").value,
+        stock: document.getElementById("prodStock").value,
+        description: document.getElementById("prodDesc").value
+    };
+
+    if (!data.name || !data.price || data.stock === "") {
+        alert("Nombre, precio y stock son obligatorios");
+        return;
+    }
+
+    fetch("/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(result => {
+        alert("Producto agregado");
+        document.getElementById("prodName").value = "";
+        document.getElementById("prodCategory").value = "";
+        document.getElementById("prodUnit").value = "";
+        document.getElementById("prodPrice").value = "";
+        document.getElementById("prodStock").value = "";
+        document.getElementById("prodDesc").value = "";
+        loadProducts();
+    })
+    .catch(err => alert("Error creando producto"));
+}
+
+function updateStock(id, currentStock, operation) {
+    fetch(`/products/${id}/stock`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stock: currentStock, operation })
+    })
+    .then(() => loadProducts())
+    .catch(err => alert("Error actualizando stock"));
+}
+
+function editProduct(id, name, category, stock, price, unit, description) {
+    const newName = prompt("Nombre:", name);
+    if (newName === null) return;
+    
+    const newCategory = prompt("Categoría:", category);
+    const newStock = prompt("Stock:", stock);
+    const newPrice = prompt("Precio:", price);
+    const newUnit = prompt("Unidad:", unit);
+    const newDesc = prompt("Descripción:", description);
+
+    fetch(`/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name: newName,
+            category: newCategory,
+            stock: parseInt(newStock),
+            price: parseFloat(newPrice),
+            unit: newUnit,
+            description: newDesc
+        })
+    })
+    .then(() => loadProducts())
+    .catch(err => alert("Error actualizando producto"));
+}
+
+function deleteProduct(id) {
+    if (!confirm("¿Eliminar este producto?")) return;
+    
+    fetch(`/products/${id}`, { method: "DELETE" })
+        .then(() => loadProducts())
+        .catch(err => alert("Error eliminando producto"));
+}
 
 // --- LÓGICA DE CLIENTES ---
 function loadClients() {

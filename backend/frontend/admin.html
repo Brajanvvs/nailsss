@@ -44,6 +44,27 @@
         <hr style="border: 0; border-top: 2px solid #ffb3c1; margin: 40px 0;">
 
         <section>
+            <h2>Inventario</h2>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; color: #d63384;">Agregar Producto</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; max-width: 700px;">
+                    <input id="prodName" placeholder="Nombre del producto" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <input id="prodCategory" placeholder="Categoría" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <input id="prodUnit" placeholder="Unidad (ej: ml, unidades)" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <input id="prodPrice" placeholder="Precio" type="number" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <input id="prodStock" placeholder="Stock inicial" type="number" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <textarea id="prodDesc" placeholder="Descripción" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;"></textarea>
+                    <button onclick="createProduct()" style="grid-column: span 3; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">Agregar Producto</button>
+                </div>
+            </div>
+            <div id="productsList">
+                <p>Cargando inventario...</p>
+            </div>
+        </section>
+
+        <hr style="border: 0; border-top: 2px solid #ffb3c1; margin: 40px 0;">
+
+        <section>
             <h2>Gestión de Usuarios</h2>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                 <h3 style="margin-top: 0; color: #d63384;">Crear Nuevo Usuario</h3>

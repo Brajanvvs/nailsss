@@ -16,6 +16,7 @@ const servicesRoutes = require("./routes/services");
 const authRoutes = require("./routes/auth");
 const appointmentsRoutes = require("./routes/appointments");
 const clientsRoutes = require("./routes/clients");
+const productsRoutes = require("./routes/products");
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use("/services", servicesRoutes);
 app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
 app.use("/clients", clientsRoutes);
+app.use("/products", productsRoutes);
 
 // 🔥 PQRS (Mongo)
 app.use("/api/pqrs", pqrsRoutes);

@@ -60,3 +60,15 @@ CREATE TABLE IF NOT EXISTS clients (
     rut_pdf TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tabla de productos/inventario
+CREATE TABLE IF NOT EXISTS products (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    category VARCHAR(50),
+    stock INTEGER DEFAULT 0,
+    price NUMERIC,
+    unit VARCHAR(20) DEFAULT 'unidades',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
