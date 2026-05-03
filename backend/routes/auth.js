@@ -7,23 +7,26 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "app.debugmail.io",
-    port: process.env.SMTP_PORT || 25,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-    },
-    secure: false,
-    tls: { rejectUnauthorized: false }
-});
-
 async function sendEmail(to, subject, html) {
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        throw new Error("SMTP no configurado");
+    const host = process.env.SMTP_HOST;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    const port = process.env.SMTP_PORT || 25;
+
+    if (!host || !user || !pass) {
+        throw new Error("SMTP no configurado: " + JSON.stringify({ host, user, pass: !!pass }));
     }
 
     console.log("📧 Enviando email a:", to);
+    console.log("   SMTP:", host, port, user);
+
+    const transporter = nodemailer.createTransport({
+        host: host,
+        port: parseInt(port),
+        auth: { user, pass },
+        secure: false,
+        connectionTimeout: 10000
+    });
 
     await transporter.sendMail({
         from: `Nail Salon <noreply@nailssalon.com>`,
