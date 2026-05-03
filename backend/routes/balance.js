@@ -157,7 +157,7 @@ router.post("/purchase", async (req, res) => {
         const total = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
         
         const clientData = await client.query(
-            "SELECT balance FROM clients WHERE id = $1",
+            "SELECT id, name, document_number, phone, balance FROM clients WHERE id = $1",
             [client_id]
         );
         
@@ -169,6 +169,7 @@ router.post("/purchase", async (req, res) => {
             throw new Error("Saldo insuficiente");
         }
         
+        // Descontar stock de productos
         for (const item of items) {
             const product = await client.query(
                 "SELECT stock FROM products WHERE id = $1",
@@ -185,17 +186,38 @@ router.post("/purchase", async (req, res) => {
             );
         }
         
+        // Descontar saldo del cliente
         await client.query(
             "UPDATE clients SET balance = balance - $1 WHERE id = $2",
             [total, client_id]
         );
+        
+        // Crear registro de venta
+        const sale = await client.query(
+            `INSERT INTO sales(client_id, client_name, client_document, client_phone, total)
+             VALUES($1, $2, $3, $4, $5)
+             RETURNING *`,
+            [client_id, clientData.rows[0].name, clientData.rows[0].document_number, clientData.rows[0].phone, total]
+        );
+        
+        const saleId = sale.rows[0].id;
+        
+        // Crear items de la venta
+        for (const item of items) {
+            await client.query(
+                `INSERT INTO sales_items(sale_id, product_id, product_name, quantity, unit_price, subtotal)
+                 VALUES($1, $2, $3, $4, $5, $6)`,
+                [saleId, item.product_id, item.product_name, item.quantity, item.unit_price, item.quantity * item.unit_price]
+            );
+        }
         
         await client.query("COMMIT");
         
         res.json({ 
             message: "Compra exitosa", 
             total: total,
-            remainingBalance: clientData.rows[0].balance - total 
+            remainingBalance: clientData.rows[0].balance - total,
+            saleId: saleId
         });
         
     } catch (err) {
