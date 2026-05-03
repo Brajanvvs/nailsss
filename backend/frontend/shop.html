@@ -108,10 +108,10 @@ function checkLogin() {
 }
 
 function login() {
-    const document = document.getElementById("loginDocument").value;
-    if (!document) return alert("Ingrese documento");
+    const docNumber = document.getElementById("loginDocument").value;
+    if (!docNumber) return alert("Ingrese documento");
     
-    fetch(`/sales/client/${document}`)
+    fetch(`/sales/client/${docNumber}`)
         .then(res => res.json())
         .then(data => {
             if (data.found) {
