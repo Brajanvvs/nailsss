@@ -5,81 +5,140 @@
     <title>Tienda - Nail Salon</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fdf2f4; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #fdf2f4 0%, #fff5f8 100%); margin: 0; padding: 20px; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; }
         
-        .header { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { color: #d63384; margin: 0; }
+        /* Header */
+        header { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.15); margin-bottom: 30px; text-align: center; }
+        header h1 { color: #d63384; font-size: 42px; margin: 0; }
+        header p { color: #666; margin-top: 5px; }
+        header .nav { margin-top: 15px; }
+        header .nav a { color: #d63384; margin: 0 15px; text-decoration: none; font-weight: 500; }
+        header .nav a:hover { text-decoration: underline; }
         
-        .balance-box { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 15px 25px; border-radius: 10px; text-align: center; }
-        .balance-box .amount { font-size: 28px; font-weight: bold; }
+        /* User Bar */
+        .user-bar { background: linear-gradient(135deg, #d63384, #ff6b9d); color: white; padding: 20px 30px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .user-bar .info { display: flex; align-items: center; gap: 30px; }
+        .user-bar .balance-box { background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 10px; }
+        .user-bar .balance-box .label { font-size: 12px; opacity: 0.9; }
+        .user-bar .balance-box .amount { font-size: 24px; font-weight: bold; }
+        .user-bar .actions a { color: white; text-decoration: none; margin-left: 20px; }
         
-        .nav a { color: #d63384; margin: 0 10px; text-decoration: none; }
+        /* Login */
+        .login-section { background: white; padding: 50px; border-radius: 20px; text-align: center; max-width: 400px; margin: 50px auto; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .login-section h2 { color: #d63384; margin: 0 0 10px 0; }
+        .login-section p { color: #666; margin-bottom: 20px; }
+        .login-section input { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; font-size: 14px; transition: border-color 0.3s; }
+        .login-section input:focus { border-color: #d63384; outline: none; }
+        .login-section button { width: 100%; padding: 14px; background: linear-gradient(135deg, #d63384, #ff6b9d); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
+        .login-section button:hover { transform: scale(1.02); }
+        .login-section .register-link { margin-top: 20px; color: #666; }
+        .login-section .register-link a { color: #d63384; font-weight: bold; }
         
-        .login-section { background: white; padding: 40px; border-radius: 15px; text-align: center; max-width: 400px; margin: 50px auto; }
-        .login-section input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
-        .login-section button { width: 100%; padding: 12px; background: #d63384; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        /* Sections */
+        .section { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .section h2 { color: #d63384; margin: 0 0 20px 0; font-size: 24px; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        /* Recharge */
+        .recharge-box { background: linear-gradient(135deg, #3498db, #5dade2); color: white; padding: 25px; border-radius: 15px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .recharge-box h3 { margin: 0; flex: 1; }
+        .recharge-box input { padding: 12px; border: none; border-radius: 8px; width: 150px; }
+        .recharge-box button { padding: 12px 25px; background: white; color: #3498db; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
-        .product-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .product-card h3 { color: #d63384; margin: 0 0 10px 0; }
-        .product-card .price { font-size: 24px; font-weight: bold; color: #27ae60; }
-        .product-card .stock { color: #666; font-size: 14px; }
-        .product-card button { width: 100%; padding: 10px; background: #d63384; color: white; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer; }
-        .product-card button:disabled { background: #ccc; }
+        /* Products Grid */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .product-card { background: linear-gradient(135deg, #fff, #fff5f8); border: 2px solid #ffb3c1; padding: 25px; border-radius: 15px; text-align: center; transition: all 0.3s; }
+        .product-card:hover { transform: translateY(-5px); border-color: #d63384; box-shadow: 0 15px 40px rgba(214, 51, 132, 0.2); }
+        .product-card h3 { color: #d63384; margin: 0 0 10px 0; font-size: 18px; }
+        .product-card .description { color: #666; font-size: 13px; margin-bottom: 10px; min-height: 40px; }
+        .product-card .stock { color: #666; font-size: 13px; margin-bottom: 10px; }
+        .product-card .stock.low { color: #e74c3c; }
+        .product-card .price { font-size: 28px; font-weight: bold; color: #27ae60; margin-bottom: 15px; }
+        .product-card button { width: 100%; padding: 12px; background: #d63384; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        .product-card button:hover { background: #c42d6f; }
         
-        .cart-section { background: white; padding: 20px; border-radius: 15px; margin-top: 20px; }
-        .cart-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        /* Cart */
+        .cart-empty { text-align: center; color: #666; padding: 40px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 10px; margin-bottom: 10px; }
+        .cart-item .info { flex: 1; }
+        .cart-item .info strong { color: #333; }
+        .cart-item .info span { color: #666; font-size: 14px; }
+        .cart-item .actions { display: flex; align-items: center; gap: 10px; }
+        .cart-item .qty-btn { width: 30px; height: 30px; background: #d63384; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .cart-item .remove-btn { background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
         
-        .recharge-section { background: white; padding: 20px; border-radius: 15px; margin-top: 20px; }
-        .recharge-section input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 150px; }
-        .recharge-section button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        
-        .success { background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-        
-        .user-info { display: flex; align-items: center; gap: 20px; }
-        .user-info span { color: #666; }
+        .cart-total { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 25px; border-radius: 15px; text-align: center; font-size: 28px; font-weight: bold; margin: 20px 0; }
+        .cart-checkout { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .cart-checkout:hover { background: #219a52; }
     </style>
 </head>
 <body>
 
 <div class="container" id="mainContainer">
-    <div class="header">
-        <h1>💅 Nail Salon - Tienda</h1>
-        <div id="headerRight"></div>
-    </div>
-    
-    <div id="loginSection" class="login-section" style="display: none;">
-        <h2 style="color: #d63384;">Ingresa a la Tienda</h2>
-        <p style="color: #666;">Ingresa con tu email y contraseña</p>
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPassword" placeholder="Contraseña">
-        <button onclick="login()">🔐 Entrar</button>
-        <p style="margin-top: 20px; color: #666;">¿No tienes cuenta? <a href="registro-clientes.html" style="color: #d63384;">Regístrate aquí</a></p>
-    </div>
-    
-    <div id="shopSection" style="display: none;">
-        <div class="recharge-section">
-            <h3 style="color: #3498db;">💳 Recargar Saldo</h3>
-            <input type="number" id="rechargeAmount" placeholder="Monto a recargar">
-            <button onclick="requestRecharge()">Solicitar Recarga</button>
+    <header>
+        <h1>💅 Tienda</h1>
+        <p>Nail Salon - Tus productos de belleza</p>
+        <div class="nav">
+            <a href="index.html">🏠 Inicio</a>
+            <a href="pqrs.html">📨 PQRS</a>
         </div>
+    </header>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="login-section" style="display: none;">
+        <h2>🔐 Ingresa a la Tienda</h2>
+        <p>Usa tu email y contraseña</p>
+        <input type="email" id="loginEmail" placeholder="Tu email">
+        <input type="password" id="loginPassword" placeholder="Tu contraseña">
+        <button onclick="login()">Entrar</button>
+        <p class="register-link">¿No tienes cuenta? <a href="registro-clientes.html">Regístrate aquí</a></p>
+    </div>
+
+    <!-- Shop Section -->
+    <div id="shopSection" style="display: none;">
         
-        <h2 style="color: #d63384; margin-top: 30px;">Productos Disponibles</h2>
-        <div class="grid" id="productsGrid"></div>
-        
-        <div class="cart-section">
-            <h3>🛒 Carrito</h3>
-            <div id="cartItems"></div>
-            <div style="text-align: center; margin-top: 15px;">
-                <strong style="font-size: 20px;">Total: $<span id="cartTotal">0</span></strong>
-                <br><br>
-                <button onclick="buyWithBalance()" style="background: #27ae60; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                    💰 Comprar con Saldo
-                </button>
+        <!-- User Bar -->
+        <div id="userBar" class="user-bar">
+            <div class="info">
+                <div>
+                    <span style="font-size: 18px;" id="clientName">Cliente</span>
+                </div>
+                <div class="balance-box">
+                    <div class="label">Tu Saldo</div>
+                    <div class="amount">$<span id="clientBalance">0</span></div>
+                </div>
             </div>
+            <div class="actions">
+                <a href="#" onclick="logout()">🚪 Cerrar Sesión</a>
+            </div>
+        </div>
+
+        <!-- Recarga -->
+        <div class="section">
+            <div class="recharge-box">
+                <h3>💳 Recargar Saldo</h3>
+                <input type="number" id="rechargeAmount" placeholder="Monto">
+                <button onclick="requestRecharge()">Solicitar</button>
+            </div>
+        </div>
+
+        <!-- Productos -->
+        <div class="section">
+            <h2>🛍️ Productos Disponibles</h2>
+            <div class="products-grid" id="productsGrid"></div>
+        </div>
+
+        <!-- Carrito -->
+        <div class="section">
+            <h2>🛒 Tu Carrito</h2>
+            <div id="cartItems">
+                <div class="cart-empty">Tu carrito está vacío</div>
+            </div>
+            <div class="cart-total">
+                Total: $<span id="cartTotal">0</span>
+            </div>
+            <button class="cart-checkout" onclick="buyWithBalance()">💰 Comprar con Saldo</button>
         </div>
     </div>
 </div>
@@ -129,28 +188,14 @@ function login() {
 
 function logout() {
     localStorage.removeItem("shopClient");
-    currentClient = null;
     location.reload();
 }
 
 function showShop() {
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("shopSection").style.display = "block";
-    
-    document.getElementById("headerRight").innerHTML = `
-        <div class="user-info">
-            <div class="balance-box">
-                <div>Tu Saldo</div>
-                <div class="amount">$<span id="clientBalance">${currentClient.balance || 0}</span></div>
-            </div>
-            <div>
-                <strong>${currentClient.name}</strong><br>
-                <small>${currentClient.document_number}</small><br>
-                <a href="#" onclick="logout()" style="color: #e74c3c;">Cerrar sesión</a>
-            </div>
-        </div>
-    `;
-    
+    document.getElementById("clientName").textContent = currentClient.name;
+    document.getElementById("clientBalance").textContent = (currentClient.balance || 0).toLocaleString();
     loadProducts();
 }
 
@@ -168,10 +213,10 @@ function renderProducts() {
     container.innerHTML = products.map(p => `
         <div class="product-card">
             <h3>${p.name}</h3>
-            <p style="color: #666;">${p.description || ""}</p>
-            <div class="stock">Stock: ${p.stock} ${p.unit}</div>
+            <p class="description">${p.description || "Producto de Nail Salon"}</p>
+            <p class="stock ${p.stock <= 5 ? 'low' : ''}">📦 Stock: ${p.stock} ${p.unit}</p>
             <div class="price">$${parseFloat(p.price).toLocaleString()}</div>
-            <button onclick="addToCart(${p.id})">Agregar</button>
+            <button onclick="addToCart(${p.id})">Agregar al Carrito</button>
         </div>
     `).join("");
 }
@@ -197,7 +242,6 @@ function addToCart(productId) {
             stock: product.stock
         });
     }
-    
     renderCart();
 }
 
@@ -206,12 +250,26 @@ function removeFromCart(index) {
     renderCart();
 }
 
+function updateQty(index, delta) {
+    const item = cart[index];
+    if (delta > 0 && item.quantity >= item.stock) {
+        alert("Stock insuficiente");
+        return;
+    }
+    if (delta < 0 && item.quantity <= 1) {
+        cart.splice(index, 1);
+    } else {
+        item.quantity += delta;
+    }
+    renderCart();
+}
+
 function renderCart() {
     const container = document.getElementById("cartItems");
     const totalEl = document.getElementById("cartTotal");
     
     if (cart.length === 0) {
-        container.innerHTML = "<p style='color: #666;'>Carrito vacío</p>";
+        container.innerHTML = "<div class='cart-empty'>🛒 Tu carrito está vacío</div>";
         totalEl.textContent = "0";
         return;
     }
@@ -221,13 +279,15 @@ function renderCart() {
         total += item.quantity * item.unit_price;
         return `
             <div class="cart-item">
-                <div>
+                <div class="info">
                     <strong>${item.product_name}</strong><br>
-                    $${item.unit_price} x ${item.quantity}
+                    <span>$${item.unit_price.toLocaleString()} x ${item.quantity}</span>
                 </div>
-                <div>
-                    <strong>$${(item.quantity * item.unit_price).toLocaleString()}</strong>
-                    <button onclick="removeFromCart(${index})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-left: 10px;">X</button>
+                <div class="actions">
+                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                    <button class="remove-btn" onclick="removeFromCart(${index})">✕</button>
                 </div>
             </div>
         `;

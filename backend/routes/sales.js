@@ -227,10 +227,10 @@ router.post("/login", async (req, res) => {
         if (clientData.rows.length === 0) {
             // Crear cliente automáticamente con los datos del usuario
             const newClient = await pool.query(
-                `INSERT INTO clients(name, email, user_id, balance)
-                 VALUES($1, $2, $3, 0)
+                `INSERT INTO clients(name, document_number, email, user_id, balance)
+                 VALUES($1, $2, $3, $4, 0)
                  RETURNING *`,
-                [user.rows[0].name, email, user.rows[0].id]
+                [user.rows[0].name, "N/A", email, user.rows[0].id]
             );
             
             return res.json({ 
