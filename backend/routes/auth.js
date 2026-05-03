@@ -6,7 +6,10 @@ const crypto = require("crypto");
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 async function sendEmail(to, subject, html) {
-    if (!process.env.BREVO_API_KEY) {
+    const apiKey = process.env.BREVO_API_KEY;
+    console.log("📧 API Key existe:", !!apiKey, apiKey ? apiKey.substring(0, 10) + "..." : "");
+
+    if (!apiKey) {
         throw new Error("BREVO_API_KEY no configurada");
     }
 
@@ -16,7 +19,8 @@ async function sendEmail(to, subject, html) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "api-key": process.env.BREVO_API_KEY
+            "Accept": "application/json",
+            "api-key": apiKey
         },
         body: JSON.stringify({
             sender: { name: "Nail Salon", email: "reset@yibrath.com" },
