@@ -44,7 +44,7 @@ app.use(express.json());
    🔥 HEALTH CHECK (CRÍTICO)
 ========================= */
 app.get("/", (req, res) => {
-  res.status(200).send("OK");
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 app.get("/health", (req, res) => {
