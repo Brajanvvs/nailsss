@@ -47,3 +47,16 @@ SELECT id,name,email,password,role FROM users;
 -- Agregar columnas para reset de contraseña
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMP;
+
+-- Tabla de clientes
+CREATE TABLE IF NOT EXISTS clients (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    document_type VARCHAR(20) DEFAULT 'CC',
+    document_number VARCHAR(30) UNIQUE,
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    address TEXT,
+    rut_pdf TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

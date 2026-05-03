@@ -15,6 +15,7 @@ const pqrsRoutes = require("./routes/pqrs");
 const servicesRoutes = require("./routes/services");
 const authRoutes = require("./routes/auth");
 const appointmentsRoutes = require("./routes/appointments");
+const clientsRoutes = require("./routes/clients");
 
 const app = express();
 
