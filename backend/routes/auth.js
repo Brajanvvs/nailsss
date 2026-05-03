@@ -2,15 +2,32 @@ const router = require("express").Router();
 const pool = require("../db");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASSWORD
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+async function sendEmail(to, subject, html) {
+    if (!process.env.RESEND_API_KEY) {
+        throw new Error("RESEND_API_KEY no configurada");
     }
-});
+
+    const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`
+        },
+        body: JSON.stringify({
+            from: "Nail Salon <onboarding@resend.dev>",
+            to: to,
+            subject: subject,
+            html: html
+        })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    return data;
+}
 
 /* =========================
 ADMIN: CREAR USUARIO
@@ -204,31 +221,29 @@ router.post("/request-reset", async (req, res) => {
 
         const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
-        if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
+        if (process.env.RESEND_API_KEY) {
             try {
                 console.log("📧 Enviando email a:", email);
                 
-                const mailOptions = {
-                    from: `"Nail Salon" <${process.env.SMTP_EMAIL}>`,
-                    to: email,
-                    subject: "Recuperación de contraseña - Nail Salon",
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;">
-                            <h2 style="color: #d63384;">Nail Salon</h2>
-                            <p>Has solicitado restablecer tu contraseña.</p>
-                            <p>Haz clic en el siguiente botón:</p>
-                            <a href="${resetUrl}" style="background: #d63384; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">
-                                Restablecer Contraseña
-                            </a>
-                            <p style="color: #666; font-size: 12px;">
-                                Este link expira en 1 hora.<br>
-                                Si no solicitaste esto, ignora este correo.
-                            </p>
-                        </div>
+                await sendEmail(
+                    email,
+                    "Recuperación de contraseña - Nail Salon",
                     `
-                };
-
-                await transporter.sendMail(mailOptions);
+                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;">
+                        <h2 style="color: #d63384;">Nail Salon</h2>
+                        <p>Has solicitado restablecer tu contraseña.</p>
+                        <p>Haz clic en el siguiente botón:</p>
+                        <a href="${resetUrl}" style="background: #d63384; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">
+                            Restablecer Contraseña
+                        </a>
+                        <p style="color: #666; font-size: 12px;">
+                            Este link expira en 1 hora.<br>
+                            Si no solicitaste esto, ignora este correo.
+                        </p>
+                    </div>
+                    `
+                );
+                
                 console.log("✅ Email enviado");
                 res.json({ message: "Email de recuperación enviado" });
             } catch (emailError) {
