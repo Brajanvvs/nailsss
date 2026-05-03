@@ -5,8 +5,6 @@ const crypto = require("crypto");
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 async function sendEmail(to, subject, html) {
     if (!process.env.BREVO_API_KEY) {
         throw new Error("BREVO_API_KEY no configurada");
