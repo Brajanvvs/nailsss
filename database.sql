@@ -42,3 +42,8 @@ DELETE FROM appointments;
 DELETE FROM appointments WHERE user_id IS NULL;
 
 SELECT id,name,email,password,role FROM users;
+
+
+-- Agregar columnas para reset de contraseña
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMP;

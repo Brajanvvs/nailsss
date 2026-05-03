@@ -7,9 +7,111 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    loadUsers();
     loadServices();
     loadPQRS();
 });
+
+// --- LÓGICA DE USUARIOS ---
+function loadUsers() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    
+    fetch(`/auth/users?adminEmail=${encodeURIComponent(user.email)}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("usersList");
+            if (data.error) {
+                container.innerHTML = `<p style="color:red">${data.error}</p>`;
+                return;
+            }
+            container.innerHTML = `
+                <table style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background:#ffb3c1; color:white;">
+                            <th style="padding:10px; text-align:left;">Nombre</th>
+                            <th style="padding:10px; text-align:left;">Email</th>
+                            <th style="padding:10px; text-align:left;">Rol</th>
+                            <th style="padding:10px; text-align:left;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(u => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">${u.name}</td>
+                                <td style="padding:10px;">${u.email}</td>
+                                <td style="padding:10px;">
+                                    <span style="background:${u.role === 'admin' ? '#d63384' : '#6c757d'}; color:white; padding:3px 8px; border-radius:10px; font-size:12px;">
+                                        ${u.role}
+                                    </span>
+                                </td>
+                                <td style="padding:10px;">
+                                    ${u.email !== user.email ? `
+                                        <button onclick="deleteUser(${u.id})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Eliminar</button>
+                                    ` : '<span style="color:#999;">(tú)</span>'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("usersList").innerHTML = "<p style='color:red'>Error cargando usuarios</p>";
+        });
+}
+
+function createUser() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const name = document.getElementById("newUserName").value;
+    const email = document.getElementById("newUserEmail").value;
+    const password = document.getElementById("newUserPassword").value;
+    const role = document.getElementById("newUserRole").value;
+
+    if (!name || !email || !password) {
+        alert("Todos los campos son obligatorios");
+        return;
+    }
+
+    fetch("/auth/create-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role, adminEmail: user.email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert("Usuario creado exitosamente");
+            document.getElementById("newUserName").value = "";
+            document.getElementById("newUserEmail").value = "";
+            document.getElementById("newUserPassword").value = "";
+            loadUsers();
+        }
+    })
+    .catch(err => alert("Error creando usuario"));
+}
+
+function deleteUser(id) {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
+
+    fetch(`/auth/users/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminEmail: user.email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            loadUsers();
+        }
+    })
+    .catch(err => alert("Error eliminando usuario"));
+}
 
 // --- LÓGICA DE SERVICIOS (PostgreSQL) ---
 function loadServices() {

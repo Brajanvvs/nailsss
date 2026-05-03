@@ -32,6 +32,29 @@
         <button onclick="location.href='index.html'" style="margin-bottom: 20px;">Volver al Inicio</button>
 
         <section>
+            <h2>Gestión de Usuarios</h2>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; color: #d63384;">Crear Nuevo Usuario</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 600px;">
+                    <input id="newUserName" placeholder="Nombre completo" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <input id="newUserEmail" placeholder="Email" type="email" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <input id="newUserPassword" placeholder="Contraseña" type="password" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <select id="newUserRole" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="user">Usuario</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                    <button onclick="createUser()" style="grid-column: span 2; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">Crear Usuario</button>
+                </div>
+            </div>
+            <h3 style="color: #d63384;">Usuarios Registrados</h3>
+            <div id="usersList" style="margin-bottom: 30px;">
+                <p>Cargando usuarios...</p>
+            </div>
+        </section>
+
+        <hr style="border: 0; border-top: 2px solid #ffb3c1; margin: 40px 0;">
+
+        <section>
             <h2>Gestión de Servicios (PostgreSQL)</h2>
             <div style="margin-bottom: 20px; display: flex; gap: 10px;">
                 <input id="title" placeholder="Nombre" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd; flex: 1;">

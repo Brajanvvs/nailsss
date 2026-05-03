@@ -1,6 +1,99 @@
 const router = require("express").Router();
 const pool = require("../db");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+
+/* =========================
+ADMIN: CREAR USUARIO
+========================= */
+
+router.post("/create-user", async (req, res) => {
+    try {
+        const { name, email, password, role, adminEmail } = req.body;
+
+        const adminCheck = await pool.query(
+            "SELECT * FROM users WHERE email=$1 AND role='admin'",
+            [adminEmail]
+        );
+
+        if (adminCheck.rows.length === 0) {
+            return res.status(403).json({ error: "Solo administradores pueden crear usuarios" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await pool.query(
+            "INSERT INTO users(name, email, password, role) VALUES($1, $2, $3, $4) RETURNING id, name, email, role",
+            [name, email, hashedPassword, role || "user"]
+        );
+
+        res.json({ message: "Usuario creado exitosamente", user: newUser.rows[0] });
+
+    } catch (err) {
+        if (err.code === "23505") {
+            return res.status(400).json({ error: "El email ya está registrado" });
+        }
+        console.error(err);
+        res.status(500).json({ error: "Error creando usuario" });
+    }
+});
+
+/* =========================
+ADMIN: LISTAR USUARIOS
+========================= */
+
+router.get("/users", async (req, res) => {
+    try {
+        const { adminEmail } = req.query;
+
+        const adminCheck = await pool.query(
+            "SELECT * FROM users WHERE email=$1 AND role='admin'",
+            [adminEmail]
+        );
+
+        if (adminCheck.rows.length === 0) {
+            return res.status(403).json({ error: "Acceso denegado" });
+        }
+
+        const users = await pool.query(
+            "SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC"
+        );
+
+        res.json(users.rows);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error obteniendo usuarios" });
+    }
+});
+
+/* =========================
+ADMIN: ELIMINAR USUARIO
+========================= */
+
+router.delete("/users/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { adminEmail } = req.body;
+
+        const adminCheck = await pool.query(
+            "SELECT * FROM users WHERE email=$1 AND role='admin'",
+            [adminEmail]
+        );
+
+        if (adminCheck.rows.length === 0) {
+            return res.status(403).json({ error: "Acceso denegado" });
+        }
+
+        await pool.query("DELETE FROM users WHERE id=$1", [id]);
+
+        res.json({ message: "Usuario eliminado" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error eliminando usuario" });
+    }
+});
 
 /* =========================
 REGISTER
@@ -73,6 +166,123 @@ res.status(500).json({error:"Error login"});
 
 }
 
+});
+
+/* =========================
+SOLICITAR RESET DE CONTRASEÑA
+========================= */
+
+router.post("/request-reset", async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await pool.query(
+            "SELECT * FROM users WHERE email=$1",
+            [email]
+        );
+
+        if (user.rows.length === 0) {
+            return res.status(404).json({ error: "Email no encontrado" });
+        }
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const resetExpires = new Date(Date.now() + 3600000).toISOString();
+
+        await pool.query(
+            "UPDATE users SET reset_token=$1, reset_expires=$2 WHERE email=$3",
+            [resetToken, resetExpires, email]
+        );
+
+        const resetUrl = `https://nailsss.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
+
+        console.log("🔗 Link de reset:", resetUrl);
+
+        res.json({ 
+            message: "Link de recuperación enviado (revisar consola para testing)",
+            debug: resetUrl 
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error solicitando reset" });
+    }
+});
+
+/* =========================
+RESETEAR CONTRASEÑA
+========================= */
+
+router.post("/reset-password", async (req, res) => {
+    try {
+        const { email, token, newPassword } = req.body;
+
+        const user = await pool.query(
+            "SELECT * FROM users WHERE email=$1 AND reset_token=$2",
+            [email, token]
+        );
+
+        if (user.rows.length === 0) {
+            return res.status(400).json({ error: "Token inválido" });
+        }
+
+        const now = new Date();
+        const expires = new Date(user.rows[0].reset_expires);
+
+        if (now > expires) {
+            return res.status(400).json({ error: "Token expirado" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await pool.query(
+            "UPDATE users SET password=$1, reset_token=NULL, reset_expires=NULL WHERE email=$2",
+            [hashedPassword, email]
+        );
+
+        res.json({ message: "Contraseña actualizada correctamente" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error reseteando contraseña" });
+    }
+});
+
+/* =========================
+CAMBIO DE PROPIA CONTRASEÑA
+========================= */
+
+router.post("/change-password", async (req, res) => {
+    try {
+        const { email, currentPassword, newPassword } = req.body;
+
+        const user = await pool.query(
+            "SELECT * FROM users WHERE email=$1",
+            [email]
+        );
+
+        if (user.rows.length === 0) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        const validPassword = await bcrypt.compare(currentPassword, user.rows[0].password);
+
+        if (!validPassword) {
+            return res.status(401).json({ error: "Contraseña actual incorrecta" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await pool.query(
+            "UPDATE users SET password=$1 WHERE email=$2",
+            [hashedPassword, email]
+        );
+
+        res.json({ message: "Contraseña actualizada correctamente" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error cambiando contraseña" });
+    }
 });
 
 module.exports = router;
