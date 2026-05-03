@@ -58,7 +58,18 @@ CREATE TABLE IF NOT EXISTS clients (
     phone VARCHAR(20),
     address TEXT,
     rut_pdf TEXT,
+    balance NUMERIC DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de solicitudes de recarga
+CREATE TABLE IF NOT EXISTS balance_requests (
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER REFERENCES clients(id),
+    amount NUMERIC NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    approved_at TIMESTAMP
 );
 
 -- Tabla de productos/inventario

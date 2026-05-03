@@ -13,8 +13,81 @@ document.addEventListener("DOMContentLoaded", () => {
     loadProducts();
     loadSales();
     loadCashBox();
+    loadRechargeRequests();
     loadPQRS();
 });
+
+// --- RECARGAS DE SALDO ---
+function loadRechargeRequests() {
+    fetch("/balance/requests")
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("rechargeRequests");
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='color: #666;'>No hay solicitudes de recarga pendientes</p>";
+                return;
+            }
+            
+            container.innerHTML = `
+                <table style="width:100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background:#3498db; color:white;">
+                            <th style="padding:10px;">Cliente</th>
+                            <th style="padding:10px;">Documento</th>
+                            <th style="padding:10px;">Teléfono</th>
+                            <th style="padding:10px;">Monto</th>
+                            <th style="padding:10px;">Fecha</th>
+                            <th style="padding:10px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(r => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">${r.client_name}</td>
+                                <td style="padding:10px;">${r.document_number}</td>
+                                <td style="padding:10px;">${r.phone || "-"}</td>
+                                <td style="padding:10px; font-weight:bold; color: #27ae60;">$${parseFloat(r.amount).toLocaleString()}</td>
+                                <td style="padding:10px;">${new Date(r.created_at).toLocaleString()}</td>
+                                <td style="padding:10px;">
+                                    <button onclick="approveRecharge(${r.id})" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; margin-right: 5px;">✅ Aprobar</button>
+                                    <button onclick="rejectRecharge(${r.id})" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">❌ Rechazar</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("rechargeRequests").innerHTML = "<p style='color:red'>Error cargando solicitudes</p>";
+        });
+}
+
+function approveRecharge(id) {
+    if (!confirm("¿Aprobar esta recarga de saldo?")) return;
+    
+    fetch(`/balance/approve/${id}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            alert("✅ Recarga aprobada");
+            loadRechargeRequests();
+        })
+        .catch(err => alert("Error aprobando"));
+}
+
+function rejectRecharge(id) {
+    if (!confirm("¿Rechazar esta recarga?")) return;
+    
+    fetch(`/balance/reject/${id}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            alert("Recarga rechazada");
+            loadRechargeRequests();
+        })
+        .catch(err => alert("Error rechazando"));
+}
 
 // --- LÓGICA DE VENTAS ---
 function loadSales() {
