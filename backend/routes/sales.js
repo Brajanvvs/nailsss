@@ -169,20 +169,25 @@ LOGIN CON EMAIL Y CONTRASEÑA
 ========================= */
 
 router.post("/login", async (req, res) => {
+    const client = await pool.connect();
+    
     try {
+        await client.query("BEGIN");
+        
         const { email, password } = req.body;
         
         if (!email || !password) {
             return res.status(400).json({ error: "Email y contraseña requeridos" });
         }
         
-        // Buscar en tabla de usuarios (que tiene las contraseñas)
-        const user = await pool.query(
+        // Buscar en tabla de usuarios
+        const user = await client.query(
             "SELECT id, name, email, password FROM users WHERE email = $1",
             [email]
         );
         
         if (user.rows.length === 0) {
+            await client.query("ROLLBACK");
             return res.status(401).json({ error: "Usuario no encontrado" });
         }
         
@@ -190,27 +195,50 @@ router.post("/login", async (req, res) => {
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
         
         if (!validPassword) {
+            await client.query("ROLLBACK");
             return res.status(401).json({ error: "Contraseña incorrecta" });
         }
         
         // Buscar cliente por user_id
-        const client = await pool.query(
+        let clientData = await client.query(
             "SELECT id, name, document_number, phone, email, balance FROM clients WHERE user_id = $1",
             [user.rows[0].id]
         );
         
-        if (client.rows.length === 0) {
-            return res.status(404).json({ error: "Tu cuenta de usuario no está vinculada a un cliente. Contacta al administrador." });
+        // Si no tiene user_id, buscar por email e intentar vincular
+        if (clientData.rows.length === 0) {
+            clientData = await client.query(
+                "SELECT id, name, document_number, phone, email, balance FROM clients WHERE email = $1",
+                [email]
+            );
+            
+            if (clientData.rows.length > 0) {
+                // Vincular cliente al usuario
+                await client.query(
+                    "UPDATE clients SET user_id = $1 WHERE id = $2",
+                    [user.rows[0].id, clientData.rows[0].id]
+                );
+                clientData.rows[0].user_id = user.rows[0].id;
+            }
+        }
+        
+        await client.query("COMMIT");
+        
+        if (clientData.rows.length === 0) {
+            return res.status(404).json({ error: "No tienes registro como cliente. Regístrate primero." });
         }
         
         res.json({ 
             success: true, 
-            client: client.rows[0] 
+            client: clientData.rows[0] 
         });
         
     } catch (err) {
+        await client.query("ROLLBACK");
         console.error(err);
         res.status(500).json({ error: "Error en login" });
+    } finally {
+        client.release();
     }
 });
 
