@@ -6,27 +6,29 @@ const crypto = require("crypto");
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 async function sendEmail(to, subject, html) {
-    if (!process.env.RESEND_API_KEY) {
-        throw new Error("RESEND_API_KEY no configurada");
+    if (!process.env.SENDGRID_API_KEY) {
+        throw new Error("SENDGRID_API_KEY no configurada");
     }
 
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`
+            "Authorization": `Bearer ${process.env.SENDGRID_API_KEY}`
         },
-body: JSON.stringify({
-                from: "Nail Salon <reflexionesprofundascom@gmail.com>",
-                to: to,
-                subject: subject,
-                html: html
-            })
+        body: JSON.stringify({
+            personalizations: [{ to: [{ email: to }] }],
+            from: { email: "reflexionesprofundascom@gmail.com" },
+            subject: subject,
+            content: [{ type: "text/html", value: html }]
+        })
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
-    return data;
+    if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error);
+    }
+    return { id: "sent" };
 }
 
 /* =========================
@@ -221,7 +223,7 @@ router.post("/request-reset", async (req, res) => {
 
         const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
-        if (process.env.RESEND_API_KEY) {
+        if (process.env.SENDGRID_API_KEY) {
             try {
                 console.log("📧 Enviando email a:", email);
                 
