@@ -5,12 +5,16 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: process.env.SMTP_PORT || 587,
-    secure: false,
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASSWORD
+    },
+    connectionTimeout: 10000,
+    tls: {
+        rejectUnauthorized: false
     }
 });
 
@@ -207,28 +211,36 @@ router.post("/request-reset", async (req, res) => {
         const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
         if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
-            const mailOptions = {
-                from: `"Nail Salon" <${process.env.SMTP_EMAIL}>`,
-                to: email,
-                subject: "Recuperación de contraseña - Nail Salon",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;">
-                        <h2 style="color: #d63384;">Nail Salon</h2>
-                        <p>Has solicitado restablecer tu contraseña.</p>
-                        <p>Haz clic en el siguiente botón:</p>
-                        <a href="${resetUrl}" style="background: #d63384; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">
-                            Restablecer Contraseña
-                        </a>
-                        <p style="color: #666; font-size: 12px;">
-                            Este link expira en 1 hora.<br>
-                            Si no solicitaste esto, ignora este correo.
-                        </p>
-                    </div>
-                `
-            };
+            try {
+                console.log("📧 Enviando email a:", email);
+                
+                const mailOptions = {
+                    from: `"Nail Salon" <${process.env.SMTP_EMAIL}>`,
+                    to: email,
+                    subject: "Recuperación de contraseña - Nail Salon",
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;">
+                            <h2 style="color: #d63384;">Nail Salon</h2>
+                            <p>Has solicitado restablecer tu contraseña.</p>
+                            <p>Haz clic en el siguiente botón:</p>
+                            <a href="${resetUrl}" style="background: #d63384; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">
+                                Restablecer Contraseña
+                            </a>
+                            <p style="color: #666; font-size: 12px;">
+                                Este link expira en 1 hora.<br>
+                                Si no solicitaste esto, ignora este correo.
+                            </p>
+                        </div>
+                    `
+                };
 
-            await transporter.sendMail(mailOptions);
-            res.json({ message: "Email de recuperación enviado" });
+                await transporter.sendMail(mailOptions);
+                console.log("✅ Email enviado");
+                res.json({ message: "Email de recuperación enviado" });
+            } catch (emailError) {
+                console.error("❌ Error email:", emailError.message);
+                res.status(500).json({ error: "Error enviando email: " + emailError.message });
+            }
         } else {
             console.log("🔗 Link de reset:", resetUrl);
             res.json({ 
