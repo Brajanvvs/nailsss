@@ -9,8 +9,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadUsers();
     loadServices();
+    loadClients();
     loadPQRS();
 });
+
+// --- LÓGICA DE CLIENTES ---
+function loadClients() {
+    fetch("/clients")
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("clientsList");
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='color: #666;'>No hay clientes registrados</p>";
+                return;
+            }
+            
+            container.innerHTML = `
+                <table style="width:100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background:#ffb3c1; color:white;">
+                            <th style="padding:10px; text-align:left;">Nombre</th>
+                            <th style="padding:10px; text-align:left;">Documento</th>
+                            <th style="padding:10px; text-align:left;">Contacto</th>
+                            <th style="padding:10px; text-align:left;">RUT</th>
+                            <th style="padding:10px; text-align:left;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(c => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">${c.name}</td>
+                                <td style="padding:10px;">${c.document_type} ${c.document_number}</td>
+                                <td style="padding:10px;">${c.email || "-"}<br>${c.phone || "-"}</td>
+                                <td style="padding:10px;">
+                                    ${c.rut_pdf ? '<span style="color: #27ae60;">✓ Adjunto</span>' : '<span style="color: #999;">Sin archivo</span>'}
+                                </td>
+                                <td style="padding:10px;">
+                                    ${c.rut_pdf ? `<a href="/clients/${c.id}/rut" target="_blank" style="background:#3498db; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; margin-right:5px;">Ver RUT</a>` : ''}
+                                    <button onclick="deleteClient(${c.id})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Eliminar</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("clientsList").innerHTML = "<p style='color:red'>Error cargando clientes</p>";
+        });
+}
+
+function deleteClient(id) {
+    if (!confirm("¿Eliminar este cliente?")) return;
+    
+    fetch(`/clients/${id}`, { method: "DELETE" })
+        .then(() => loadClients())
+        .catch(err => alert("Error eliminando cliente"));
+}
 
 // --- LÓGICA DE USUARIOS ---
 function loadUsers() {
