@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Clientes - Nail Salon</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf2f4; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #d63384; text-align: center; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;
+        }
+        .form-group.full { grid-column: span 2; }
+        
+        .file-upload {
+            border: 2px dashed #d63384; padding: 20px; text-align: center; border-radius: 10px;
+            cursor: pointer; background: #fff5f8;
+        }
+        .file-upload:hover { background: #ffeef2; }
+        
+        button {
+            background: #d63384; color: white; border: none; padding: 15px 30px;
+            border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%;
+        }
+        button:hover { background: #c42d6f; }
+        
+        .client-list { margin-top: 30px; }
+        .client-card {
+            background: #f8f9fa; padding: 15px; margin-bottom: 10px;
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .client-info { flex: 1; }
+        .client-actions { display: flex; gap: 10px; }
+        .btn-view { background: #27ae60; padding: 8px 15px; border-radius: 5px; color: white; text-decoration: none; }
+        .btn-delete { background: #e74c3c; padding: 8px 15px; border-radius: 5px; color: white; border: none; cursor: pointer; }
+        
+        .rut-preview { display: none; margin-top: 10px; }
+        .rut-preview iframe { width: 100%; height: 300px; border: 1px solid #ddd; }
+        
+        .success { background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        
+        .nav { text-align: center; margin-bottom: 20px; }
+        .nav a { color: #d63384; margin: 0 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav">
+        <a href="index.html">← Inicio</a>
+    </div>
+    
+    <h1>Registro de Clientes</h1>
+    
+    <div id="message"></div>
+    
+    <form id="clientForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" id="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Tipo de Documento</label>
+                <select id="document_type">
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="CE">Cédula de Extranjería</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="NIT">NIT</option>
+                    <option value="PASAPORTE">Pasaporte</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Número de Documento *</label>
+                <input type="text" id="document_number" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email">
+            </div>
+            
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" id="phone">
+            </div>
+            
+            <div class="form-group">
+                <label>Dirección</label>
+                <input type="text" id="address">
+            </div>
+            
+            <div class="form-group full">
+                <label>Adjuntar RUT (PDF)</label>
+                <div class="file-upload" onclick="document.getElementById('rut_file').click()">
+                    <p>📄 Click para cargar PDF del RUT</p>
+                    <input type="file" id="rut_file" accept="application/pdf" style="display: none" onchange="handleFile(this)">
+                </div>
+                <div id="fileName" style="margin-top: 10px; color: #666;"></div>
+                <div id="rutPreview" class="rut-preview">
+                    <iframe id="rutFrame"></iframe>
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit">Registrar Cliente</button>
+    </form>
+    
+    <div class="client-list">
+        <h2 style="color: #d63384;">Clientes Registrados</h2>
+        <div id="clientsList"></div>
+    </div>
+</div>
+
+<script>
+let rutBase64 = "";
+
+function handleFile(input) {
+    const file = input.files[0];
+    if (file) {
+        document.getElementById("fileName").textContent = "✓ " + file.name;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            rutBase64 = e.target.result.split(",")[1];
+            
+            document.getElementById("rutPreview").style.display = "block";
+            document.getElementById("rutFrame").src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+document.getElementById("clientForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const data = {
+        name: document.getElementById("name").value,
+        document_type: document.getElementById("document_type").value,
+        document_number: document.getElementById("document_number").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        address: document.getElementById("address").value,
+        rut_pdf: rutBase64
+    };
+    
+    const messageDiv = document.getElementById("message");
+    
+    try {
+        const res = await fetch("/clients", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            messageDiv.innerHTML = '<div class="success">✓ Cliente registrado exitosamente</div>';
+            document.getElementById("clientForm").reset();
+            rutBase64 = "";
+            document.getElementById("fileName").textContent = "";
+            document.getElementById("rutPreview").style.display = "none";
+            loadClients();
+        } else {
+            messageDiv.innerHTML = '<div class="error">' + result.error + '</div>';
+        }
+    } catch (err) {
+        messageDiv.innerHTML = '<div class="error">Error de conexión</div>';
+    }
+});
+
+async function loadClients() {
+    try {
+        const res = await fetch("/clients");
+        const clients = await res.json();
+        
+        const container = document.getElementById("clientsList");
+        
+        if (clients.length === 0) {
+            container.innerHTML = "<p style='color: #666;'>No hay clientes registrados</p>";
+            return;
+        }
+        
+        container.innerHTML = clients.map(c => `
+            <div class="client-card">
+                <div class="client-info">
+                    <strong>${c.name}</strong><br>
+                    <small>${c.document_type}: ${c.document_number}</small><br>
+                    <small>📧 ${c.email || "Sin email"} | 📞 ${c.phone || "Sin teléfono"}</small>
+                </div>
+                <div class="client-actions">
+                    ${c.rut_pdf ? `<a href="/clients/${c.id}/rut" target="_blank" class="btn-view">📄 Ver RUT</a>` : ''}
+                    <button onclick="deleteClient(${c.id})" class="btn-delete">Eliminar</button>
+                </div>
+            </div>
+        `).join("");
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function deleteClient(id) {
+    if (!confirm("¿Eliminar este cliente?")) return;
+    
+    try {
+        await fetch(`/clients/${id}`, { method: "DELETE" });
+        loadClients();
+    } catch (err) {
+        alert("Error eliminando cliente");
+    }
+}
+
+loadClients();
+</script>
+
+</body>
+</html>
