@@ -113,11 +113,6 @@
         
         <button type="submit">Registrar Cliente</button>
     </form>
-    
-    <div class="client-list">
-        <h2 style="color: #d63384;">Clientes Registrados</h2>
-        <div id="clientsList"></div>
-    </div>
 </div>
 
 <script>
@@ -178,48 +173,12 @@ document.getElementById("clientForm").addEventListener("submit", async (e) => {
     }
 });
 
-async function loadClients() {
-    try {
-        const res = await fetch("/clients");
-        const clients = await res.json();
-        
-        const container = document.getElementById("clientsList");
-        
-        if (clients.length === 0) {
-            container.innerHTML = "<p style='color: #666;'>No hay clientes registrados</p>";
-            return;
-        }
-        
-        container.innerHTML = clients.map(c => `
-            <div class="client-card">
-                <div class="client-info">
-                    <strong>${c.name}</strong><br>
-                    <small>${c.document_type}: ${c.document_number}</small><br>
-                    <small>📧 ${c.email || "Sin email"} | 📞 ${c.phone || "Sin teléfono"}</small>
-                </div>
-                <div class="client-actions">
-                    ${c.rut_pdf ? `<a href="/clients/${c.id}/rut" target="_blank" class="btn-view">📄 Ver RUT</a>` : ''}
-                    <button onclick="deleteClient(${c.id})" class="btn-delete">Eliminar</button>
-                </div>
-            </div>
-        `).join("");
-    } catch (err) {
-        console.error(err);
-    }
-}
 
-async function deleteClient(id) {
-    if (!confirm("¿Eliminar este cliente?")) return;
-    
-    try {
-        await fetch(`/clients/${id}`, { method: "DELETE" });
-        loadClients();
     } catch (err) {
         alert("Error eliminando cliente");
     }
 }
 
-loadClients();
 </script>
 
 </body>
