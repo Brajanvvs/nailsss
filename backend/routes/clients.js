@@ -13,11 +13,13 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ error: "Nombre y número de documento son obligatorios" });
         }
 
+        console.log("📄 RUT recibido:", rut_pdf ? rut_pdf.substring(0, 50) + "..." : "sin archivo");
+        
         const newClient = await pool.query(
             `INSERT INTO clients(name, document_type, document_number, email, phone, address, rut_pdf)
              VALUES($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [name, document_type || "CC", document_number, email, phone, address, rut_pdf]
+            [name, document_type || "CC", document_number, email, phone, address, rut_pdf || null]
         );
 
         res.json({ message: "Cliente registrado exitosamente", client: newClient.rows[0] });
@@ -38,7 +40,7 @@ LISTAR CLIENTES
 router.get("/", async (req, res) => {
     try {
         const clients = await pool.query(
-            "SELECT id, name, document_type, document_number, email, phone, address, created_at FROM clients ORDER BY created_at DESC"
+            "SELECT id, name, document_type, document_number, email, phone, address, rut_pdf, created_at FROM clients ORDER BY created_at DESC"
         );
         res.json(clients.rows);
     } catch (err) {
