@@ -16,12 +16,12 @@ async function sendEmail(to, subject, html) {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${process.env.RESEND_API_KEY}`
         },
-        body: JSON.stringify({
-            from: "Nail Salon <onboarding@resend.dev>",
-            to: to,
-            subject: subject,
-            html: html
-        })
+body: JSON.stringify({
+                from: "Nail Salon <reflexionesprofundascom@gmail.com>",
+                to: to,
+                subject: subject,
+                html: html
+            })
     });
 
     const data = await res.json();
