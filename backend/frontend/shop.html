@@ -98,10 +98,50 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function checkLogin() {
+    // Primero verificar si hay sesión del sistema principal
+    const user = localStorage.getItem("user");
+    if (user) {
+        const userData = JSON.parse(user);
+        // Buscar cliente por documento del usuario
+        fetch(`/sales/client/${userData.email}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.found) {
+                    currentClient = data.client;
+                    localStorage.setItem("shopClient", JSON.stringify(currentClient));
+                    showShop();
+                } else {
+                    // Si no encuentra por email, intentar login normal
+                    checkShopClient();
+                }
+            })
+            .catch(() => checkShopClient());
+    } else {
+        checkShopClient();
+    }
+}
+
+function checkShopClient() {
     const saved = localStorage.getItem("shopClient");
     if (saved) {
         currentClient = JSON.parse(saved);
-        showShop();
+        // Verificar que el cliente aún existe
+        fetch(`/sales/client/${currentClient.document_number}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.found) {
+                    currentClient = data.client;
+                    localStorage.setItem("shopClient", JSON.stringify(currentClient));
+                    showShop();
+                } else {
+                    // Cliente eliminado, limpiar y mostrar login
+                    localStorage.removeItem("shopClient");
+                    document.getElementById("loginSection").style.display = "block";
+                }
+            })
+            .catch(() => {
+                document.getElementById("loginSection").style.display = "block";
+            });
     } else {
         document.getElementById("loginSection").style.display = "block";
     }
