@@ -6,21 +6,24 @@ const crypto = require("crypto");
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 async function sendEmail(to, subject, html) {
-    if (!process.env.SENDGRID_API_KEY) {
-        throw new Error("SENDGRID_API_KEY no configurada");
+    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+        throw new Error("MAILGUN_API_KEY o MAILGUN_DOMAIN no configuradas");
     }
 
-    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    const domain = process.env.MAILGUN_DOMAIN;
+    const auth = Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString("base64");
+
+    const res = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.SENDGRID_API_KEY}`
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": `Basic ${auth}`
         },
-        body: JSON.stringify({
-            personalizations: [{ to: [{ email: to }] }],
-            from: { email: "reflexionesprofundascom@gmail.com" },
+        body: new URLSearchParams({
+            from: `Nail Salon <noreply@${domain}>`,
+            to: to,
             subject: subject,
-            content: [{ type: "text/html", value: html }]
+            html: html
         })
     });
 
@@ -223,7 +226,7 @@ router.post("/request-reset", async (req, res) => {
 
         const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
-        if (process.env.SENDGRID_API_KEY) {
+        if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
             try {
                 console.log("📧 Enviando email a:", email);
                 
