@@ -140,15 +140,17 @@ router.get("/:id", async (req, res) => {
 });
 
 /* =========================
-BUSCAR CLIENTE POR DOCUMENTO
+BUSCAR CLIENTE POR DOCUMENTO O EMAIL
 ========================= */
 
-router.get("/client/:document", async (req, res) => {
+router.get("/client/:search", async (req, res) => {
     try {
-        const { document } = req.params;
+        const { search } = req.params;
+        
+        // Buscar por documento o email
         const client = await pool.query(
-            "SELECT id, name, document_number, phone, email FROM clients WHERE document_number = $1",
-            [document]
+            "SELECT id, name, document_number, phone, email, balance FROM clients WHERE document_number = $1 OR email = $1",
+            [search]
         );
         
         if (client.rows.length === 0) {
