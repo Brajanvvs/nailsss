@@ -54,6 +54,7 @@ app.get("/health", (req, res) => {
 app.use("/services", servicesRoutes);
 app.use("/auth", authRoutes);
 app.use("/appointments", appointmentsRoutes);
+app.use("/clients", clientsRoutes);
 
 // 🔥 PQRS (Mongo)
 app.use("/api/pqrs", pqrsRoutes);
