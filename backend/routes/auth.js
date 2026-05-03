@@ -19,8 +19,7 @@ async function sendEmail(to, subject, html) {
         host: SMTP_HOST,
         port: SMTP_PORT,
         auth: { user: SMTP_USER, pass: SMTP_PASS },
-        secure: false,
-        ignoreTLS: true
+        secure: true
     });
 
     try {
