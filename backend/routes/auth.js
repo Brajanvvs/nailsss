@@ -5,41 +5,33 @@ const crypto = require("crypto");
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "app.debugmail.io",
+    port: process.env.SMTP_PORT || 25,
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+    },
+    secure: false,
+    tls: { rejectUnauthorized: false }
+});
+
 async function sendEmail(to, subject, html) {
-    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
-        throw new Error("MAILGUN_API_KEY o MAILGUN_DOMAIN no configuradas");
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        throw new Error("SMTP no configurado");
     }
 
-    console.log("📧 Enviando con Mailgun...");
-    console.log("   Domain:", process.env.MAILGUN_DOMAIN);
+    console.log("📧 Enviando email a:", to);
 
-    const domain = process.env.MAILGUN_DOMAIN;
-    const auth = Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString("base64");
-
-    const url = `https://api.mailgun.net/v3/${domain}/messages`;
-    console.log("   URL:", url);
-
-    const formData = new URLSearchParams();
-    formData.append("from", `Nail Salon <mailgun@${domain}>`);
-    formData.append("to", to);
-    formData.append("subject", subject);
-    formData.append("html", html);
-
-    const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": `Basic ${auth}`
-        },
-        body: formData.toString()
+    await transporter.sendMail({
+        from: `Nail Salon <noreply@nailssalon.com>`,
+        to: to,
+        subject: subject,
+        html: html
     });
 
-    console.log("   Status:", res.status);
-
-    if (!res.ok) {
-        const error = await res.text();
-        throw new Error(error);
-    }
     console.log("✅ Email enviado");
     return { id: "sent" };
 }
@@ -236,7 +228,7 @@ router.post("/request-reset", async (req, res) => {
 
         const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
-        if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
+        if (process.env.SMTP_HOST && process.env.SMTP_USER) {
             try {
                 console.log("📧 Enviando email a:", email);
                 
