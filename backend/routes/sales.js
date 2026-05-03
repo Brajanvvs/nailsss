@@ -164,4 +164,54 @@ router.get("/client/:search", async (req, res) => {
     }
 });
 
+/* =========================
+LOGIN CON EMAIL Y CONTRASEÑA
+========================= */
+
+router.post("/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email y contraseña requeridos" });
+        }
+        
+        // Buscar en tabla de usuarios (que tiene las contraseñas)
+        const user = await pool.query(
+            "SELECT id, name, email, password FROM users WHERE email = $1",
+            [email]
+        );
+        
+        if (user.rows.length === 0) {
+            return res.status(401).json({ error: "Usuario no encontrado" });
+        }
+        
+        const bcrypt = require("bcrypt");
+        const validPassword = await bcrypt.compare(password, user.rows[0].password);
+        
+        if (!validPassword) {
+            return res.status(401).json({ error: "Contraseña incorrecta" });
+        }
+        
+        // Buscar o crear cliente linked
+        const client = await pool.query(
+            "SELECT id, name, document_number, phone, email, balance FROM clients WHERE email = $1",
+            [email]
+        );
+        
+        if (client.rows.length === 0) {
+            return res.status(404).json({ error: "No tienes registro como cliente. Regístrate primero." });
+        }
+        
+        res.json({ 
+            success: true, 
+            client: client.rows[0] 
+        });
+        
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error en login" });
+    }
+});
+
 module.exports = router;

@@ -53,15 +53,11 @@
     
     <div id="loginSection" class="login-section" style="display: none;">
         <h2 style="color: #d63384;">Ingresa a la Tienda</h2>
-        <p style="color: #666;">Si ya eres cliente, ingresa tu documento</p>
-        <input type="text" id="loginDocument" placeholder="Número de documento">
+        <p style="color: #666;">Ingresa con tu email y contraseña</p>
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Contraseña">
         <button onclick="login()">🔐 Entrar</button>
         <p style="margin-top: 20px; color: #666;">¿No tienes cuenta? <a href="registro-clientes.html" style="color: #d63384;">Regístrate aquí</a></p>
-        
-        <div id="clientNotFound" style="display: none; margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 5px;">
-            <p style="margin: 0 0 10px 0;">No encontramos tu documento. Puedes:</p>
-            <a href="registro-clientes.html" style="display: block; background: #d63384; color: white; padding: 10px; text-align: center; border-radius: 5px; text-decoration: none;">Crear Cuenta</a>
-        </div>
     </div>
     
     <div id="shopSection" style="display: none;">
@@ -98,80 +94,37 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function checkLogin() {
-    // Primero verificar si hay sesión del sistema principal
-    const user = localStorage.getItem("user");
-    if (user) {
-        const userData = JSON.parse(user);
-        // Buscar cliente por documento del usuario
-        fetch(`/sales/client/${userData.email}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.found) {
-                    currentClient = data.client;
-                    localStorage.setItem("shopClient", JSON.stringify(currentClient));
-                    showShop();
-                } else {
-                    // Si no encuentra por email, intentar login normal
-                    checkShopClient();
-                }
-            })
-            .catch(() => checkShopClient());
-    } else {
-        checkShopClient();
-    }
-}
-
-function checkShopClient() {
     const saved = localStorage.getItem("shopClient");
     if (saved) {
         currentClient = JSON.parse(saved);
-        // Verificar que el cliente aún existe
-        fetch(`/sales/client/${currentClient.document_number}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.found) {
-                    currentClient = data.client;
-                    localStorage.setItem("shopClient", JSON.stringify(currentClient));
-                    showShop();
-                } else {
-                    // Cliente eliminado, limpiar y mostrar login
-                    localStorage.removeItem("shopClient");
-                    document.getElementById("loginSection").style.display = "block";
-                }
-            })
-            .catch(() => {
-                document.getElementById("loginSection").style.display = "block";
-            });
+        showShop();
     } else {
         document.getElementById("loginSection").style.display = "block";
     }
 }
 
 function login() {
-    const docNumber = document.getElementById("loginDocument").value;
-    if (!docNumber) return alert("Ingrese documento");
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
     
-    fetch(`/sales/client/${docNumber}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.found) {
-                // Obtener balance actualizado
-                fetch(`/balance/client/${data.client.id}`)
-                    .then(r => r.json())
-                    .then(clientData => {
-                        currentClient = {
-                            id: clientData.id,
-                            name: clientData.name,
-                            document_number: clientData.document_number,
-                            balance: clientData.balance || 0
-                        };
-                        localStorage.setItem("shopClient", JSON.stringify(currentClient));
-                        showShop();
-                    });
-            } else {
-                document.getElementById("clientNotFound").style.display = "block";
-            }
-        });
+    if (!email || !password) return alert("Ingrese email y contraseña");
+    
+    fetch("/sales/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else if (data.success) {
+            currentClient = data.client;
+            localStorage.setItem("shopClient", JSON.stringify(currentClient));
+            showShop();
+        }
+    })
+    .catch(err => alert("Error de conexión"));
 }
 
 function logout() {
