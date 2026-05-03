@@ -156,10 +156,10 @@ function renderProducts() {
 }
 
 function searchClient() {
-    const document = document.getElementById("searchDocument").value;
-    if (!document) return alert("Ingrese número de documento");
+    const docNumber = document.getElementById("searchDocument").value;
+    if (!docNumber) return alert("Ingrese número de documento");
     
-    fetch(`/sales/client/${document}`)
+    fetch(`/sales/client/${docNumber}`)
         .then(res => res.json())
         .then(data => {
             const resultDiv = document.getElementById("clientResult");
@@ -186,10 +186,10 @@ function searchClient() {
 
 function registerNewClient() {
     const name = document.getElementById("newClientName").value;
-    const document = document.getElementById("newClientDocument").value;
+    const docNumber = document.getElementById("newClientDocument").value;
     const phone = document.getElementById("newClientPhone").value;
     
-    if (!name || !document) {
+    if (!name || !docNumber) {
         alert("Nombre y documento son obligatorios");
         return;
     }
@@ -197,7 +197,7 @@ function registerNewClient() {
     fetch("/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, document_number: document, phone })
+        body: JSON.stringify({ name, document_number: docNumber, phone })
     })
     .then(res => res.json())
     .then(data => {
