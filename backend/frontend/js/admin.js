@@ -11,8 +11,110 @@ document.addEventListener("DOMContentLoaded", () => {
     loadServices();
     loadClients();
     loadProducts();
+    loadSales();
     loadPQRS();
 });
+
+// --- LÓGICA DE VENTAS ---
+function loadSales() {
+    fetch("/sales")
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("salesList");
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='color: #666;'>No hay ventas registradas</p>";
+                return;
+            }
+            
+            const totalVentas = data.reduce((sum, s) => sum + parseFloat(s.total || 0), 0);
+            
+            container.innerHTML = `
+                <div style="background: #d63384; color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong>Total Ventas: $${totalVentas.toLocaleString()}</strong>
+                    <br><small>${data.length} ventas registradas</small>
+                </div>
+                <table style="width:100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background:#ffb3c1; color:white;">
+                            <th style="padding:10px; text-align:left;">#</th>
+                            <th style="padding:10px; text-align:left;">Fecha</th>
+                            <th style="padding:10px; text-align:left;">Cliente</th>
+                            <th style="padding:10px; text-align:left;">Documento</th>
+                            <th style="padding:10px; text-align:left;">Total</th>
+                            <th style="padding:10px; text-align:left;">Items</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(s => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">${s.id}</td>
+                                <td style="padding:10px;">${new Date(s.created_at).toLocaleDateString()}</td>
+                                <td style="padding:10px;">${s.client_name || "Sin cliente"}</td>
+                                <td style="padding:10px;">${s.client_document || "-"}</td>
+                                <td style="padding:10px; font-weight:bold;">$${parseFloat(s.total).toLocaleString()}</td>
+                                <td style="padding:10px;">
+                                    <span style="background:#3498db; color:white; padding:3px 8px; border-radius:10px; font-size:12px;">
+                                        ${s.items ? s.items.length : 0} productos
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("salesList").innerHTML = "<p style='color:red'>Error cargando ventas</p>";
+        });
+}
+
+async function generateSalesPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    try {
+        const res = await fetch("/sales");
+        const sales = await res.json();
+        
+        if (sales.length === 0) return alert("No hay ventas para exportar");
+        
+        const totalVentas = sales.reduce((sum, s) => sum + parseFloat(s.total || 0), 0);
+        
+        doc.setFontSize(18);
+        doc.setTextColor(214, 51, 132);
+        doc.text("Reporte de Ventas - Nail Salon", 14, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text(`Total de ventas: $${totalVentas.toLocaleString()}`, 14, 34);
+        doc.text(`Número de ventas: ${sales.length}`, 14, 40);
+        
+        const rows = sales.map(s => [
+            s.id,
+            new Date(s.created_at).toLocaleDateString(),
+            s.client_name || "Sin cliente",
+            s.client_document || "-",
+            `$${parseFloat(s.total).toLocaleString()}`
+        ]);
+        
+        doc.autoTable({
+            startY: 50,
+            head: [['#', 'Fecha', 'Cliente', 'Documento', 'Total']],
+            body: rows,
+            headStyles: { fillColor: [255, 105, 180] },
+            styles: { fontSize: 9 }
+        });
+        
+        doc.save("Reporte_Ventas_NailSalon.pdf");
+        
+    } catch (error) {
+        alert("Error generando el PDF");
+        console.error(error);
+    }
+}
 
 // --- LÓGICA DE PRODUCTOS (INVENTARIO) ---
 function loadProducts() {
