@@ -10,27 +10,37 @@ async function sendEmail(to, subject, html) {
         throw new Error("MAILGUN_API_KEY o MAILGUN_DOMAIN no configuradas");
     }
 
+    console.log("📧 Enviando con Mailgun...");
+    console.log("   Domain:", process.env.MAILGUN_DOMAIN);
+
     const domain = process.env.MAILGUN_DOMAIN;
     const auth = Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString("base64");
 
-    const res = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+    const url = `https://api.mailgun.net/v3/${domain}/messages`;
+    console.log("   URL:", url);
+
+    const formData = new URLSearchParams();
+    formData.append("from", `Nail Salon <mailgun@${domain}>`);
+    formData.append("to", to);
+    formData.append("subject", subject);
+    formData.append("html", html);
+
+    const res = await fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             "Authorization": `Basic ${auth}`
         },
-        body: new URLSearchParams({
-            from: `Nail Salon <noreply@${domain}>`,
-            to: to,
-            subject: subject,
-            html: html
-        })
+        body: formData.toString()
     });
+
+    console.log("   Status:", res.status);
 
     if (!res.ok) {
         const error = await res.text();
         throw new Error(error);
     }
+    console.log("✅ Email enviado");
     return { id: "sent" };
 }
 
