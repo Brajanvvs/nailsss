@@ -123,6 +123,20 @@
                 <p>Cargando mensajes de los clientes...</p>
             </div>
         </section>
+
+        <hr style="border: 0; border-top: 2px solid #27ae60; margin: 40px 0;">
+
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="color: #27ae60; border: none; margin: 0;">💰 Saldo en Caja</h2>
+                <button onclick="generateCashReportPDF()" style="background:#27ae60; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    📄 Descargar Reporte PDF
+                </button>
+            </div>
+            <div id="cashBox">
+                <p>Cargando...</p>
+            </div>
+        </section>
     </div>
 
     <script src="js/admin.js"></script>

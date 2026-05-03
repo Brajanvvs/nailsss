@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadClients();
     loadProducts();
     loadSales();
+    loadCashBox();
     loadPQRS();
 });
 
@@ -548,6 +549,124 @@ async function generarPDF() {
 
         doc.save("Reporte_NailsBar_PQRS.pdf");
 
+    } catch (error) {
+        alert("Error generando el PDF");
+        console.error(error);
+    }
+}
+
+// --- SALDO EN CAJA ---
+function loadCashBox() {
+    fetch("/sales")
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("cashBox");
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div style="background: #f8f9fa; padding: 30px; border-radius: 15px; text-align: center;">
+                        <h3 style="color: #666;">💰 Saldo en Caja: $0</h3>
+                        <p style="color: #999;">No hay ventas realizadas aún</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const total = data.reduce((sum, s) => sum + parseFloat(s.total || 0), 0);
+            
+            container.innerHTML = `
+                <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; font-size: 36px;">$${total.toLocaleString()}</h2>
+                    <p style="margin: 10px 0 0 0; opacity: 0.9;">Saldo acumulado en caja</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
+                        <strong style="color: #d63384; font-size: 24px;">${data.length}</strong>
+                        <p style="margin: 5px 0 0 0; color: #666;">Ventas realizadas</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
+                        <strong style="color: #3498db; font-size: 24px;">${new Date(data[0].created_at).toLocaleDateString()}</strong>
+                        <p style="margin: 5px 0 0 0; color: #666;">Última venta</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
+                        <strong style="color: #9b59b6; font-size: 24px;">$${Math.round(total / data.length).toLocaleString()}</strong>
+                        <p style="margin: 5px 0 0 0; color: #666;">Promedio por venta</p>
+                    </div>
+                </div>
+                <h3 style="color: #27ae60;">Historial de Ventas</h3>
+                <table style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background:#27ae60; color:white;">
+                            <th style="padding:10px;"># Venta</th>
+                            <th style="padding:10px;">Fecha</th>
+                            <th style="padding:10px;">Cliente</th>
+                            <th style="padding:10px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.slice(0, 10).map(s => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">${s.id}</td>
+                                <td style="padding:10px;">${new Date(s.created_at).toLocaleString()}</td>
+                                <td style="padding:10px;">${s.client_name || "Sin cliente"}</td>
+                                <td style="padding:10px; font-weight:bold; color: #27ae60;">$${parseFloat(s.total).toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                ${data.length > 10 ? `<p style="color: #666; text-align: center; margin-top: 10px;">... y ${data.length - 10} ventas más</p>` : ''}
+            `;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("cashBox").innerHTML = "<p style='color:red'>Error cargando saldo</p>";
+        });
+}
+
+async function generateCashReportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    try {
+        const res = await fetch("/sales");
+        const sales = await res.json();
+        
+        if (sales.length === 0) return alert("No hay ventas para exportar");
+        
+        const total = sales.reduce((sum, s) => sum + parseFloat(s.total || 0), 0);
+        
+        doc.setFontSize(20);
+        doc.setTextColor(39, 174, 96);
+        doc.text("💰 Saldo en Caja - Nail Salon", 14, 20);
+        
+        doc.setFontSize(14);
+        doc.setTextColor(0);
+        doc.text(`Saldo Total: $${total.toLocaleString()}`, 14, 32);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 40);
+        doc.text(`Total de ventas: ${sales.length}`, 14, 46);
+        doc.text(`Promedio por venta: $${Math.round(total / sales.length).toLocaleString()}`, 14, 52);
+        
+        const rows = sales.map(s => [
+            s.id,
+            new Date(s.created_at).toLocaleString(),
+            s.client_name || "Sin cliente",
+            s.client_document || "-",
+            `$${parseFloat(s.total).toLocaleString()}`
+        ]);
+        
+        doc.autoTable({
+            startY: 60,
+            head: [['#', 'Fecha', 'Cliente', 'Documento', 'Total']],
+            body: rows,
+            headStyles: { fillColor: [39, 174, 96] },
+            styles: { fontSize: 9 }
+        });
+        
+        doc.save("Saldo_Caja_NailSalon.pdf");
+        
     } catch (error) {
         alert("Error generando el PDF");
         console.error(error);
