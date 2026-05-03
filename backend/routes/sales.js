@@ -225,7 +225,19 @@ router.post("/login", async (req, res) => {
         await client.query("COMMIT");
         
         if (clientData.rows.length === 0) {
-            return res.status(404).json({ error: "No tienes registro como cliente. Regístrate primero." });
+            // Crear cliente automáticamente con los datos del usuario
+            const newClient = await pool.query(
+                `INSERT INTO clients(name, email, user_id, balance)
+                 VALUES($1, $2, $3, 0)
+                 RETURNING *`,
+                [user.rows[0].name, email, user.rows[0].id]
+            );
+            
+            return res.json({ 
+                success: true, 
+                client: newClient.rows[0],
+                autoCreated: true
+            });
         }
         
         res.json({ 
