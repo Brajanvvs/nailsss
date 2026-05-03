@@ -52,9 +52,16 @@
     </div>
     
     <div id="loginSection" class="login-section" style="display: none;">
-        <h2 style="color: #d63384;">Ingresa tu documento</h2>
+        <h2 style="color: #d63384;">Ingresa a la Tienda</h2>
+        <p style="color: #666;">Si ya eres cliente, ingresa tu documento</p>
         <input type="text" id="loginDocument" placeholder="Número de documento">
-        <button onclick="login()">Entrar</button>
+        <button onclick="login()">🔐 Entrar</button>
+        <p style="margin-top: 20px; color: #666;">¿No tienes cuenta? <a href="registro-clientes.html" style="color: #d63384;">Regístrate aquí</a></p>
+        
+        <div id="clientNotFound" style="display: none; margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 5px;">
+            <p style="margin: 0 0 10px 0;">No encontramos tu documento. Puedes:</p>
+            <a href="registro-clientes.html" style="display: block; background: #d63384; color: white; padding: 10px; text-align: center; border-radius: 5px; text-decoration: none;">Crear Cuenta</a>
+        </div>
     </div>
     
     <div id="shopSection" style="display: none;">
@@ -108,11 +115,21 @@ function login() {
         .then(res => res.json())
         .then(data => {
             if (data.found) {
-                currentClient = data.client;
-                localStorage.setItem("shopClient", JSON.stringify(currentClient));
-                showShop();
+                // Obtener balance actualizado
+                fetch(`/balance/client/${data.client.id}`)
+                    .then(r => r.json())
+                    .then(clientData => {
+                        currentClient = {
+                            id: clientData.id,
+                            name: clientData.name,
+                            document_number: clientData.document_number,
+                            balance: clientData.balance || 0
+                        };
+                        localStorage.setItem("shopClient", JSON.stringify(currentClient));
+                        showShop();
+                    });
             } else {
-                alert("Cliente no encontrado. Regístrese primero en la página de registro.");
+                document.getElementById("clientNotFound").style.display = "block";
             }
         });
 }
