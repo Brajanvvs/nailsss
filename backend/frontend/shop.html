@@ -118,7 +118,7 @@
         <div class="section">
             <div class="recharge-box">
                 <h3>💳 Recargar Saldo</h3>
-                <input type="number" id="rechargeAmount" placeholder="Monto">
+                <input type="number" id="rechargeAmount" placeholder="Monto" min="1" max="999999">
                 <button onclick="requestRecharge()">Solicitar</button>
             </div>
         </div>
@@ -301,6 +301,11 @@ function requestRecharge() {
     
     if (!amount || amount <= 0) {
         alert("Ingrese un monto válido");
+        return;
+    }
+    
+    if (amount > 999999) {
+        alert("El monto máximo es 999,999");
         return;
     }
     
