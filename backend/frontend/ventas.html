@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Venta - Nail Salon</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf2f4; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #d63384; text-align: center; }
+        
+        .nav { text-align: center; margin-bottom: 20px; }
+        .nav a { color: #d63384; margin: 0 10px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .card { background: #f8f9fa; padding: 20px; border-radius: 10px; }
+        .card h3 { color: #d63384; margin-top: 0; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        
+        .btn { background: #d63384; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #c42d6f; }
+        .btn-success { background: #27ae60; }
+        .btn-danger { background: #e74c3c; }
+        .btn-small { padding: 5px 10px; font-size: 14px; }
+        
+        .product-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; background: white; margin-bottom: 8px; border-radius: 5px;
+            border: 1px solid #eee;
+        }
+        .product-stock { font-size: 12px; color: #666; }
+        .product-stock.low { color: #e74c3c; }
+        
+        .cart-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; background: white; margin-bottom: 8px; border-radius: 5px;
+        }
+        
+        .total-box {
+            background: #d63384; color: white; padding: 20px; border-radius: 10px;
+            text-align: center; font-size: 24px; font-weight: bold;
+            margin-top: 20px;
+        }
+        
+        .client-info { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 10px; }
+        
+        .search-box { display: flex; gap: 10px; }
+        .search-box input { flex: 1; }
+        
+        .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        
+        .qty-controls { display: flex; align-items: center; gap: 5px; }
+        .qty-controls button { width: 25px; height: 25px; padding: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav">
+        <a href="index.html">← Inicio</a> | 
+        <a href="admin.html">Panel Admin</a>
+    </div>
+    
+    <h1>Nueva Venta</h1>
+    
+    <div id="message"></div>
+    
+    <div class="grid">
+        <div class="card">
+            <h3>1. Cliente</h3>
+            <div class="search-box">
+                <input type="text" id="searchDocument" placeholder="Buscar por número de documento">
+                <button onclick="searchClient()" class="btn">Buscar</button>
+            </div>
+            <div id="clientResult"></div>
+            
+            <div id="newClientForm" style="display: none; margin-top: 15px;">
+                <h4>Cliente nuevo - Complete los datos:</h4>
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input type="text" id="newClientName" placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Documento:</label>
+                    <input type="text" id="newClientDocument" placeholder="Número de documento">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono:</label>
+                    <input type="text" id="newClientPhone" placeholder="Teléfono">
+                </div>
+                <button onclick="registerNewClient()" class="btn btn-success">Registrar Cliente</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>2. Productos</h3>
+            <div id="productsList"></div>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 20px;">
+        <h3>3. Carrito de Compras</h3>
+        <div id="cartItems"></div>
+        <div class="total-box">
+            Total: $<span id="cartTotal">0</span>
+        </div>
+        <button onclick="completeSale()" class="btn btn-success" style="width: 100%; margin-top: 15px; font-size: 18px;">
+            💰 Finalizar Venta
+        </button>
+    </div>
+    
+    <div id="saleResult" style="display: none; margin-top: 30px;">
+        <h2 style="color: #27ae60;">✓ Venta Realizada</h2>
+        <div id="invoiceData"></div>
+        <button onclick="printInvoice()" class="btn">🖨️ Imprimir Factura</button>
+        <button onclick="newSale()" class="btn" style="margin-left: 10px;">Nueva Venta</button>
+    </div>
+</div>
+
+<script>
+let currentClient = null;
+let cart = [];
+let products = [];
+let lastSale = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadProducts();
+});
+
+function loadProducts() {
+    fetch("/products")
+        .then(res => res.json())
+        .then(data => {
+            products = data.filter(p => p.stock > 0);
+            renderProducts();
+        });
+}
+
+function renderProducts() {
+    const container = document.getElementById("productsList");
+    container.innerHTML = products.map(p => `
+        <div class="product-item">
+            <div>
+                <strong>${p.name}</strong><br>
+                <span class="product-stock ${p.stock <= 5 ? 'low' : ''}">Stock: ${p.stock} ${p.unit} - $${parseFloat(p.price).toLocaleString()}</span>
+            </div>
+            <button onclick="addToCart(${p.id})" class="btn btn-small">Agregar</button>
+        </div>
+    `).join("");
+}
+
+function searchClient() {
+    const document = document.getElementById("searchDocument").value;
+    if (!document) return alert("Ingrese número de documento");
+    
+    fetch(`/sales/client/${document}`)
+        .then(res => res.json())
+        .then(data => {
+            const resultDiv = document.getElementById("clientResult");
+            
+            if (data.found) {
+                currentClient = data.client;
+                resultDiv.innerHTML = `
+                    <div class="client-info">
+                        <strong>✓ Cliente encontrado</strong><br>
+                        Nombre: ${data.client.name}<br>
+                        Documento: ${data.client.document_number}<br>
+                        Teléfono: ${data.client.phone || "No registrado"}
+                    </div>
+                `;
+                document.getElementById("newClientForm").style.display = "none";
+            } else {
+                currentClient = null;
+                resultDiv.innerHTML = `<div class="error">Cliente no encontrado. Registre los datos abajo.</div>`;
+                document.getElementById("newClientForm").style.display = "block";
+                document.getElementById("newClientDocument").value = document;
+            }
+        });
+}
+
+function registerNewClient() {
+    const name = document.getElementById("newClientName").value;
+    const document = document.getElementById("newClientDocument").value;
+    const phone = document.getElementById("newClientPhone").value;
+    
+    if (!name || !document) {
+        alert("Nombre y documento son obligatorios");
+        return;
+    }
+    
+    fetch("/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, document_number: document, phone })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            currentClient = { id: data.client.id, name: data.client.name, document_number: document, phone: phone };
+            document.getElementById("clientResult").innerHTML = `
+                <div class="client-info">
+                    <strong>✓ Cliente registrado</strong><br>
+                    ${name} - ${document}
+                </div>
+            `;
+            document.getElementById("newClientForm").style.display = "none";
+        }
+    });
+}
+
+function addToCart(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    const existing = cart.find(item => item.product_id === productId);
+    
+    if (existing) {
+        if (existing.quantity >= product.stock) {
+            alert("Stock insuficiente");
+            return;
+        }
+        existing.quantity++;
+    } else {
+        cart.push({
+            product_id: product.id,
+            product_name: product.name,
+            quantity: 1,
+            unit_price: parseFloat(product.price),
+            stock: product.stock
+        });
+    }
+    
+    renderCart();
+}
+
+function updateQty(index, delta) {
+    const item = cart[index];
+    if (delta > 0 && item.quantity >= item.stock) {
+        alert("Stock insuficiente");
+        return;
+    }
+    if (delta < 0 && item.quantity <= 1) {
+        cart.splice(index, 1);
+    } else {
+        item.quantity += delta;
+    }
+    renderCart();
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    renderCart();
+}
+
+function renderCart() {
+    const container = document.getElementById("cartItems");
+    const totalEl = document.getElementById("cartTotal");
+    
+    if (cart.length === 0) {
+        container.innerHTML = "<p style='color: #666;'>No hay productos en el carrito</p>";
+        totalEl.textContent = "0";
+        return;
+    }
+    
+    let total = 0;
+    container.innerHTML = cart.map((item, index) => {
+        const subtotal = item.quantity * item.unit_price;
+        total += subtotal;
+        return `
+            <div class="cart-item">
+                <div>
+                    <strong>${item.product_name}</strong><br>
+                    $${item.unit_price.toLocaleString()} x ${item.quantity} = $${subtotal.toLocaleString()}
+                </div>
+                <div class="qty-controls">
+                    <button onclick="updateQty(${index}, -1)" class="btn btn-small btn-danger">-</button>
+                    <span>${item.quantity}</span>
+                    <button onclick="updateQty(${index}, 1)" class="btn btn-small">+</button>
+                    <button onclick="removeFromCart(${index})" class="btn btn-small btn-danger">X</button>
+                </div>
+            </div>
+        `;
+    }).join("");
+    
+    totalEl.textContent = total.toLocaleString();
+}
+
+function completeSale() {
+    if (!currentClient) {
+        alert("Debe buscar o registrar un cliente");
+        return;
+    }
+    
+    if (cart.length === 0) {
+        alert("Debe agregar productos al carrito");
+        return;
+    }
+    
+    const saleData = {
+        client_id: currentClient.id,
+        client_name: currentClient.name,
+        client_document: currentClient.document_number,
+        client_phone: currentClient.phone,
+        items: cart.map(item => ({
+            product_id: item.product_id,
+            product_name: item.product_name,
+            quantity: item.quantity,
+            unit_price: item.unit_price
+        }))
+    };
+    
+    fetch("/sales", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(saleData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            lastSale = data.sale;
+            document.getElementById("saleResult").style.display = "block";
+            document.getElementById("invoiceData").innerHTML = `
+                <div class="success">
+                    <strong>Venta #${data.sale.id}</strong><br>
+                    Cliente: ${data.sale.client_name}<br>
+                    Total: $${parseFloat(data.sale.total).toLocaleString()}<br>
+                    Fecha: ${new Date(data.sale.created_at).toLocaleString()}
+                </div>
+            `;
+            cart = [];
+            currentClient = null;
+            renderCart();
+            loadProducts();
+            document.getElementById("searchDocument").value = "";
+            document.getElementById("clientResult").innerHTML = "";
+        }
+    });
+}
+
+function printInvoice() {
+    if (!lastSale) return;
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.setTextColor(214, 51, 132);
+    doc.text("Nail Salon", 105, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Factura de Venta", 105, 28, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text(`No. Venta: ${lastSale.id}`, 20, 40);
+    doc.text(`Fecha: ${new Date(lastSale.created_at).toLocaleString()}`, 20, 46);
+    
+    doc.text(`Cliente: ${lastSale.client_name}`, 20, 56);
+    doc.text(`Documento: ${lastSale.client_document || "N/A"}`, 20, 62);
+    doc.text(`Teléfono: ${lastSale.client_phone || "N/A"}`, 20, 68);
+    
+    let y = 80;
+    doc.setFillColor(255, 105, 180);
+    doc.rect(20, y-6, 170, 8, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text("Producto", 22, y);
+    doc.text("Cant", 110, y);
+    doc.text("Precio", 130, y);
+    doc.text("Subtotal", 160, y);
+    
+    y += 10;
+    doc.setTextColor(0);
+    const items = JSON.parse(lastSale.items || "[]");
+    items.forEach(item => {
+        doc.text(item.product_name.substring(0, 25), 22, y);
+        doc.text(item.quantity.toString(), 110, y);
+        doc.text("$" + item.unit_price.toLocaleString(), 130, y);
+        doc.text("$" + item.subtotal.toLocaleString(), 160, y);
+        y += 8;
+    });
+    
+    y += 5;
+    doc.setFontSize(14);
+    doc.setTextColor(214, 51, 132);
+    doc.text(`TOTAL: $${parseFloat(lastSale.total).toLocaleString()}`, 160, y, { align: "right" });
+    
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text("Gracias por su compra!", 105, 280, { align: "center" });
+    
+    doc.save(`Factura-${lastSale.id}.pdf`);
+}
+
+function newSale() {
+    document.getElementById("saleResult").style.display = "none";
+    lastSale = null;
+}
+</script>
+
+</body>
+</html>

@@ -72,3 +72,25 @@ CREATE TABLE IF NOT EXISTS products (
     unit VARCHAR(20) DEFAULT 'unidades',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tabla de ventas
+CREATE TABLE IF NOT EXISTS sales (
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER REFERENCES clients(id),
+    client_name VARCHAR(100),
+    client_document VARCHAR(30),
+    client_phone VARCHAR(20),
+    total NUMERIC,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de items de venta
+CREATE TABLE IF NOT EXISTS sales_items (
+    id SERIAL PRIMARY KEY,
+    sale_id INTEGER REFERENCES sales(id),
+    product_id INTEGER REFERENCES products(id),
+    product_name VARCHAR(100),
+    quantity INTEGER,
+    unit_price NUMERIC,
+    subtotal NUMERIC
+);
