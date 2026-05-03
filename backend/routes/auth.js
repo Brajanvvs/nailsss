@@ -193,7 +193,7 @@ router.post("/request-reset", async (req, res) => {
             [resetToken, resetExpires, email]
         );
 
-        const resetUrl = `https://nailsss.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
+        const resetUrl = `https://nailsss-production.up.railway.app/reset-password.html?token=${resetToken}&email=${email}`;
 
         console.log("🔗 Link de reset:", resetUrl);
 
