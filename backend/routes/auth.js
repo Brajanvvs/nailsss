@@ -8,35 +8,33 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const nodemailer = require("nodemailer");
 
 async function sendEmail(to, subject, html) {
-    const host = process.env.SMTP_HOST;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
-    const port = process.env.SMTP_PORT || 25;
+    const SMTP_HOST = process.env.SMTP_HOST;
+    const SMTP_USER = process.env.SMTP_USER;
+    const SMTP_PASS = process.env.SMTP_PASS;
+    const SMTP_PORT = parseInt(process.env.SMTP_PORT) || 25;
 
-    if (!host || !user || !pass) {
-        throw new Error("SMTP no configurado: " + JSON.stringify({ host, user, pass: !!pass }));
-    }
-
-    console.log("📧 Enviando email a:", to);
-    console.log("   SMTP:", host, port, user);
+    console.log("📧 SMTP config:", { host: SMTP_HOST, port: SMTP_PORT, user: SMTP_USER });
 
     const transporter = nodemailer.createTransport({
-        host: host,
-        port: parseInt(port),
-        auth: { user, pass },
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        auth: { user: SMTP_USER, pass: SMTP_PASS },
         secure: false,
-        connectionTimeout: 10000
+        ignoreTLS: true
     });
 
-    await transporter.sendMail({
-        from: `Nail Salon <noreply@nailssalon.com>`,
-        to: to,
-        subject: subject,
-        html: html
-    });
-
-    console.log("✅ Email enviado");
-    return { id: "sent" };
+    try {
+        const info = await transporter.sendMail({
+            from: `Nail Salon <test@${SMTP_HOST}>`,
+            to: to,
+            subject: subject,
+            html: html
+        });
+        console.log("✅ Email enviado:", info.messageId);
+    } catch (e) {
+        console.error("❌ Error SMTP:", e.message);
+        throw e;
+    }
 }
 
 /* =========================
